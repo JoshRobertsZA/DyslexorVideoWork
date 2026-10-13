@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="750" height="710" viewBox="0 0 375 355" role="img" aria-labelledby="title desc">
+<title id="title">Dyslexor — Spelling Star</title>
+<desc id="desc">Hand-drawn vector recreation of the Spelling Star achievement. A sculpted gold star surrounds faceted emerald enamel, an ivory check mark and a champagne diamond. Every visible element is vector geometry; no embedded bitmap is used.</desc>
+<defs>
+ <linearGradient id="gold" x1=".05" y1="0" x2=".9" y2="1" gradientUnits="objectBoundingBox"><stop offset="0.000" stop-color="#fffbc1"/><stop offset=".22" stop-color="#ffe68b"/><stop offset=".5" stop-color="#efb84e"/><stop offset=".76" stop-color="#d3952f"/><stop offset="1" stop-color="#ffdb80"/></linearGradient>
+ <linearGradient id="leftGold" x1="0" y1="0" x2="1" y2=".4"><stop offset="0.000" stop-color="#fffcc4"/><stop offset=".34" stop-color="#ffdf79"/><stop offset=".8" stop-color="#c38625"/><stop offset="1" stop-color="#86510f"/></linearGradient>
+ <linearGradient id="rightGold" x1="0" y1="0" x2="1" y2="0"><stop offset="0.000" stop-color="#ffe080"/><stop offset=".4" stop-color="#e7ad42"/><stop offset="1" stop-color="#a5691c"/></linearGradient>
+ <linearGradient id="bottomGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0.000" stop-color="#fbcf66"/><stop offset=".47" stop-color="#d39226"/><stop offset="1" stop-color="#92601c"/></linearGradient>
+ <linearGradient id="innerGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0.000" stop-color="#754611"/><stop offset=".38" stop-color="#b87d29"/><stop offset="1" stop-color="#352a0e"/></linearGradient>
+ <linearGradient id="emeraldBase" x1=".15" y1=".1" x2=".8" y2="1"><stop offset="0.000" stop-color="#00854d"/><stop offset=".33" stop-color="#006a37"/><stop offset="1" stop-color="#002e25"/></linearGradient>
+ <linearGradient id="facetA" x1="0" y1="0" x2="1" y2="1"><stop offset="0.000" stop-color="#05e684"/><stop offset="1" stop-color="#01864b"/></linearGradient>
+ <linearGradient id="facetB" x1="0" y1="0" x2="1" y2="1"><stop offset="0.000" stop-color="#00542b"/><stop offset="1" stop-color="#009b4c"/></linearGradient>
+ <linearGradient id="facetC" x1="0" y1="0" x2=".7" y2="1"><stop offset="0.000" stop-color="#00b561"/><stop offset="1" stop-color="#006c3e"/></linearGradient>
+ <linearGradient id="facetD" x1="0" y1="0" x2="1" y2="1"><stop offset="0.000" stop-color="#004e2a"/><stop offset="1" stop-color="#002f25"/></linearGradient>
+ <linearGradient id="facetE" x1="0" y1="0" x2="1" y2="1"><stop offset="0.000" stop-color="#3affad"/><stop offset="1" stop-color="#0de991"/></linearGradient>
+ <linearGradient id="facetF" x1="0" y1="0" x2="1" y2="1"><stop offset="0.000" stop-color="#008d43"/><stop offset="1" stop-color="#004729"/></linearGradient>
+ <linearGradient id="ivory" x1=".18" y1=".05" x2=".82" y2="1"><stop offset="0.000" stop-color="#fffdf5"/><stop offset=".25" stop-color="#fffdfa"/><stop offset=".55" stop-color="#f0e2c3"/><stop offset=".78" stop-color="#e6d6b6"/><stop offset="1" stop-color="#f8f0df"/></linearGradient>
+ <linearGradient id="checkBevel" x1="0" y1="0" x2="1" y2="1"><stop offset="0.000" stop-color="#fffef5"/><stop offset=".32" stop-color="#fff9e7"/><stop offset=".6" stop-color="#d2bd95"/><stop offset="1" stop-color="#9f885e"/></linearGradient>
+ <linearGradient id="checkSide" x1="0" y1="0" x2="1" y2="1"><stop offset="0.000" stop-color="#e8c476"/><stop offset=".58" stop-color="#8e6024"/><stop offset="1" stop-color="#bd8a3a"/></linearGradient>
+ <linearGradient id="gemGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0.000" stop-color="#fffed5"/><stop offset=".5" stop-color="#d8c889"/><stop offset="1" stop-color="#696235"/></linearGradient>
+ <filter id="badgeShadow" x="-30%" y="-25%" width="165%" height="175%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="blur"/><feOffset in="blur" dx="2" dy="7" result="offset"/><feFlood flood-color="#493111" flood-opacity=".26" result="color"/><feComposite in="color" in2="offset" operator="in" result="shadow"/><feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <filter id="checkShadow" x="-25%" y="-20%" width="155%" height="155%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/><feOffset in="blur" dx="2.2" dy="3.2" result="offset"/><feFlood flood-color="#00140b" flood-opacity=".75" result="color"/><feComposite in="color" in2="offset" operator="in" result="shadow"/><feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <filter id="jewelShadow" x="-70%" y="-40%" width="240%" height="210%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="1.4" result="blur"/><feOffset in="blur" dx="1" dy="2" result="offset"/><feFlood flood-color="#002015" flood-opacity=".75" result="color"/><feComposite in="color" in2="offset" operator="in" result="shadow"/><feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <path id="outline" d="M187.7 15.3Q186.8 13.6 185.5 15.6L132 99.8 16.3 126.8Q13.6 127.4 15 130.8L79.8 217.2 54.4 337.7Q53.6 341.2 57.4 339.8L187 295.6 313.5 340Q318.4 342 316.9 336.1L293.1 216.3 356.1 131.1Q359 127.2 354.3 126.4L245.6 100.2Z"/>
+ <path id="enamel" d="M187.6 47.2 233.4 119 326.2 139.2 273 210.2 292.2 311.6 186.9 275.4 79.3 311.1 102.4 210.4 48.8 140.4 142 119.8Z"/>
+ <clipPath id="enamelClip"><use xlink:href="#enamel"/></clipPath>
+</defs>
+<g filter="url(#badgeShadow)">
+ <use xlink:href="#outline" fill="url(#gold)" stroke="#8b5d28" stroke-width="1.1" stroke-linejoin="round"/>
+ <!-- The individual edge surfaces reproduce the raised, machined gold rim. -->
+ <path d="M187.5 15.3 187.5 36.8 137.2 111 132 100Z" fill="#fff9bc"/>
+ <path d="M132 100 137.2 111 37 135 15 129Z" fill="#fff7ad"/>
+ <path d="M15 129 37 135 94.6 212 79.8 217.2Z" fill="url(#leftGold)"/>
+ <path d="M79.8 217.2 94.6 212 71.8 320.2 54.4 339.5Z" fill="url(#gold)"/>
+ <path d="M54.4 339.5 71.8 320.2 186.9 282.3 187 295.6Z" fill="url(#bottomGold)"/>
+ <path d="M187 295.6 186.9 282.3 300 320 316.2 340Z" fill="url(#bottomGold)"/>
+ <path d="M300 320 274 210.6 293.1 216.3 316.2 340Z" fill="url(#rightGold)"/>
+ <path d="M274 210.6 335.4 135.1 356.4 128.5 293.1 216.3Z" fill="url(#rightGold)"/>
+ <path d="M335.4 135.1 239.1 111.6 245.6 100.2 356.4 128.5Z" fill="#fff3a8"/>
+ <path d="M239.1 111.6 187.5 36.8 187.5 15.3 245.6 100.2Z" fill="url(#gold)"/>
+ <!-- Inner bevel and green-black enamel gasket. -->
+ <path d="M187.5 36.8 239.1 111.6 335.4 135.1 274 210.6 300 320 186.9 282.3 71.8 320.2 94.6 212 37 135 137.2 111Z" fill="url(#innerGold)"/>
+ <path d="M187.6 43.6 236.3 116 331 137.3 277.2 210.8 296.1 316.5 187 278.3 75.4 316 99.1 210.9 43.3 138.5 140.4 115.9Z" fill="#002719"/>
+ <use xlink:href="#enamel" fill="url(#emeraldBase)"/>
+ <g clip-path="url(#enamelClip)">
+  <path d="M187.6 47.2 168.1 87.7 142 119.8Z" fill="url(#facetA)"/>
+  <path d="M187.6 47.2 187.4 116 168.1 87.7Z" fill="#008645"/>
+  <path d="M187.6 47.2 209.2 93.6 233.4 119 187.4 116Z" fill="url(#facetD)"/>
+  <path d="M142 119.8 168.1 87.7 187.4 116 187 174.7Z" fill="url(#facetC)"/>
+  <path d="M142 119.8 187 174.7 154.3 140.2Z" fill="#007439"/>
+  <path d="M187.4 116 233.4 119 187 174.7Z" fill="url(#facetF)"/>
+  <path d="M233.4 119 230.1 150.7 187 174.7Z" fill="url(#facetB)"/>
+  <path d="M48.8 140.4 142 119.8 121.7 157.5Z" fill="url(#facetE)"/>
+  <path d="M48.8 140.4 101.4 133.3 121.7 157.5Z" fill="#08bf76"/>
+  <path d="M48.8 140.4 121.7 157.5 88.2 176.9Z" fill="url(#facetC)"/>
+  <path d="M48.8 140.4 88.2 176.9 102.4 210.4Z" fill="url(#facetF)"/>
+  <path d="M121.7 157.5 142 119.8 187 174.7Z" fill="url(#facetC)"/>
+  <path d="M121.7 157.5 187 174.7 136.4 198.6Z" fill="#005b32"/>
+  <path d="M121.7 157.5 136.4 198.6 102.4 210.4Z" fill="url(#facetF)"/>
+  <path d="M121.7 157.5 102.4 210.4 88.2 176.9Z" fill="url(#facetB)"/>
+  <path d="M233.4 119 326.2 139.2 278.6 154.2Z" fill="url(#facetF)"/>
+  <path d="M233.4 119 278.6 154.2 230.1 150.7Z" fill="#008845"/>
+  <path d="M326.2 139.2 273 210.2 260.7 209.4 278.6 154.2Z" fill="url(#facetD)"/>
+  <path d="M278.6 154.2 260.7 209.4 217.7 198.6 230.1 150.7Z" fill="url(#facetF)"/>
+  <path d="M187 174.7 230.1 150.7 217.7 198.6 172.5 237.9Z" fill="#004e2d"/>
+  <path d="M102.4 210.4 125.2 259 79.3 311.1Z" fill="url(#facetA)"/>
+  <path d="M102.4 210.4 95.1 263.4 79.3 311.1Z" fill="#007943"/>
+  <path d="M102.4 210.4 136.4 198.6 125.2 259Z" fill="#005731"/>
+  <path d="M136.4 198.6 187 174.7 172.5 237.9 125.2 259Z" fill="url(#facetC)"/>
+  <path d="M125.2 259 172.5 237.9 186.9 275.4Z" fill="#004f30"/>
+  <path d="M125.2 259 186.9 275.4 79.3 311.1Z" fill="url(#facetF)"/>
+  <path d="M79.3 311.1 153.5 278.8 186.9 275.4Z" fill="#003c2a"/>
+  <path d="M172.5 237.9 217.7 198.6 242.1 254.3 186.9 275.4Z" fill="url(#facetB)"/>
+  <path d="M217.7 198.6 260.7 209.4 242.1 254.3Z" fill="url(#facetA)"/>
+  <path d="M260.7 209.4 273 210.2 292.2 311.6 242.1 254.3Z" fill="url(#facetF)"/>
+  <path d="M242.1 254.3 292.2 311.6 186.9 275.4Z" fill="url(#facetD)"/>
+  <path d="M186.9 275.4 242.1 254.3 203.7 261.2Z" fill="url(#facetC)"/>
+  <path d="M273 210.2 292.2 311.6 285.3 300.1Z" fill="#07824a"/>
+  <!-- Fine facet intersections have deliberately varied brightness. -->
+  <path d="M49 140.6 121.7 157.5 142 119.8M101.4 133.3 121.7 157.5" fill="none" stroke="#b1ffe0" stroke-width=".8" stroke-linejoin="round"/>
+  <path d="M142 119.8 168.1 87.7 187.6 47.2" fill="none" stroke="#5ff6b8" stroke-width=".7"/>
+  <path d="M121.7 157.5 187 174.7 233.4 119 326.2 139.2" fill="none" stroke="#23bd79" stroke-width=".45"/>
+  <path d="M79.3 311.1 125.2 259 102.4 210.4M125.2 259 186.9 275.4" fill="none" stroke="#32c38b" stroke-width=".65"/>
+  <path d="M217.7 225.6 242.1 254.3 260.7 209.4M242.1 254.3 285.3 300.1" fill="none" stroke="#75e6a8" stroke-width=".7"/>
+ </g>
+ <use xlink:href="#enamel" fill="none" stroke="#01582e" stroke-width=".8"/>
+ <!-- The narrow polished ridges catch the light independently of the gold faces. -->
+ <path d="M187.5 16 187.5 36.8 137.2 111 37 135 94.6 212 71.8 320.2 186.9 282.3 300 320 274 210.6 335.4 135.1 239.1 111.6 187.5 36.8" fill="none" stroke="#fffde3" stroke-width="1.25" stroke-linejoin="round"/>
+ <path d="M15.6 128.8 132 100 186.3 15.8M188.2 15.9 245.6 100.2 355 127.8M55.6 338.6 79.8 217.2M187 282.5 187 295" fill="none" stroke="#ffffe5" stroke-width=".8" stroke-linecap="round"/>
+ <path d="M37 135 48.8 140.4M94.6 212 102.4 210.4M71.8 320.2 79.3 311.1M186.9 282.3 186.9 275.4M300 320 292.2 311.6M274 210.6 273 210.2M335.4 135.1 326.2 139.2" fill="none" stroke="#fff4c0" stroke-width=".8"/>
+ <!-- Four-point champagne jewel. -->
+ <g filter="url(#jewelShadow)">
+  <path d="M187.3 61 199 87.6 216.2 98.6 199.5 110.3 187.3 142.2 175.9 111.4 158.9 98.7 176.2 87.6Z" fill="url(#gemGold)" stroke="#786c3e" stroke-width=".6"/>
+  <path d="M187.3 61 187.2 99 176.2 87.6Z" fill="#fffdf0"/>
+  <path d="M187.3 61 199 87.6 187.2 99Z" fill="#cabb82"/>
+  <path d="M176.2 87.6 158.9 98.7 187.2 99Z" fill="#fffbd5"/>
+  <path d="M199 87.6 216.2 98.6 187.2 99Z" fill="#d9dcb5"/>
+  <path d="M158.9 98.7 175.9 111.4 187.2 99Z" fill="#c8ad68"/>
+  <path d="M187.2 99 175.9 111.4 187.3 142.2Z" fill="#fff6cf"/>
+  <path d="M187.2 99 199.5 110.3 216.2 98.6Z" fill="#76875e"/>
+  <path d="M187.2 99 187.3 142.2 199.5 110.3Z" fill="#b2aa70"/>
+  <path d="M187.3 61 187.2 99 187.3 142.2M158.9 98.7 187.2 99 216.2 98.6" fill="none" stroke="#ffffdf" stroke-width=".85"/>
+  <path d="M187.3 61 176.2 87.6 158.9 98.7M187.3 142.2 199.5 110.3 216.2 98.6" fill="none" stroke="#f8eab8" stroke-width=".7"/>
+ </g>
+ <!-- Check mark: gold mount, extrusion, bevel, and the ivory front. -->
+ <g filter="url(#checkShadow)" stroke-linejoin="round">
+  <path d="M113.1 208.9 137.6 184.8Q140.6 181.5 144.1 184.9L169.2 208.1 251.5 131.1Q255.1 127.9 258.5 131.5L281.6 154.1Q284.1 156.7 281.6 160.6L175.9 269.4Q171.4 274.1 167 270.1L112.4 218.3Q108.2 213.8 113.1 208.9Z" fill="url(#checkSide)" stroke="#77531e" stroke-width="1"/>
+  <path d="M112.4 212.6 139.3 185.5Q140.7 184.2 142.1 185.7L169.3 212.5 252.8 132.3Q254.7 130.5 256.1 132.1L279 155.1 274.2 158.7 169.9 265.1 117.6 215.7Z" fill="url(#gold)"/>
+  <path d="M116.7 210.2 138.8 189.1Q140.3 187.4 142 189L169.5 215.8 253.7 135.6 276.4 157 172.2 262.5Q169.5 265.1 167 262.2L117.4 215.2Q114.5 212.4 116.7 210.2Z" fill="url(#checkBevel)" stroke="#d7ba73" stroke-width=".55"/>
+  <path d="M124 211.4 140.7 195.2 169.7 224.4 254.8 143.2 269.4 157.9 169.9 255.7Z" fill="url(#ivory)"/>
+  <path d="M116.7 211.1 140.1 189.4 169.4 216.6 253.8 136.4 275.6 157 269.4 157.9 254.8 143.2 169.7 224.4 140.7 195.2 124 211.4Z" fill="#fffdf5"/>
+  <path d="M124 211.4 169.9 255.7 269.4 157.9 275.6 157 171.7 262.2Q169.4 264.1 167.5 262.1L117.4 214.4Z" fill="url(#checkBevel)"/>
+  <path d="M124 211.4 169.9 255.7 269.4 157.9" fill="none" stroke="#fffdf2" stroke-width="1.1" stroke-linecap="round"/>
+  <path d="M117.4 212 140.2 189.5 169.5 216.5 253.7 136.1 275.6 157" fill="none" stroke="#fffcef" stroke-width=".8"/>
+  <path d="M117.7 216 168.2 267.1Q170.8 269.9 173.7 266.7L279.9 158.2" fill="none" stroke="#ebc976" stroke-width=".6"/>
+ </g>
+</g>
+</svg>

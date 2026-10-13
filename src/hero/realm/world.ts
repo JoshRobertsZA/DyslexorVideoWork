@@ -1,5 +1,5 @@
 import { random } from "remotion";
-import { ACCENT } from "../config";
+import { ACCENT, HERO_LOOK } from "../config";
 
 // The village Hero walks through, in texels (1 texel = 1 art pixel of the
 // realm sprites). North is -y. Hero arrives at the bottom of the main path and
@@ -32,7 +32,28 @@ export const SPOTS = {
   rowan: { x: 0, y: -470 },
 };
 
+// The morning after the Dark Wizard's attack: the realm drained toward grey
+// (the stolen words) and burn marks up the main path. Shared by the Arrival
+// and the Village so they match.
+export const DRAIN = 0.6;
+export const SCORCH = [
+  { x: -30, y: 70, rx: 16, ry: 11 },
+  { x: 24, y: 22, rx: 14, ry: 9 },
+  { x: -6, y: -50, rx: 20, ry: 12 },
+  { x: 48, y: -130, rx: 18, ry: 11 },
+  { x: -52, y: -210, rx: 20, ry: 12 },
+  { x: 14, y: -300, rx: 22, ry: 13 },
+  { x: -70, y: -380, rx: 18, ry: 11 },
+  { x: 60, y: -460, rx: 20, ry: 12 },
+  { x: -20, y: -560, rx: 24, ry: 14 },
+  { x: 120, y: -640, rx: 18, ry: 10 },
+];
+
 export const SHEETS = {
+  // Hero's avatar layers, stacked like the app draws them (skin, hair, outfit).
+  heroSkin: `realm/hero/skin-tone${HERO_LOOK.skin}.png`,
+  heroHair: `realm/hero/hair-${HERO_LOOK.hair}.png`,
+  heroOutfit: `realm/hero/outfit-${HERO_LOOK.outfit}.png`,
   rowan: "realm/villager.png",
   dyslexi: "realm/dyslexi.png",
   farmer: "realm/npc_farmer.png",

@@ -18,7 +18,7 @@ export const linear = (f: number, pts: [number, number][]) => track(f, pts, Easi
 // 0..1: how fast the camera is moving, for head bob.
 export const walking = (f: number, pos: (f: number) => number) => Math.min(1, Math.abs(pos(f + 1) - pos(f)) / 0.6);
 
-const HERO_LAYERS = [
+export const HERO_LAYERS = [
   `realm/hero/skin-tone${HERO_LOOK.skin}.png`,
   `realm/hero/hair-${HERO_LOOK.hair}.png`,
   `realm/hero/outfit-${HERO_LOOK.outfit}.png`,

@@ -63,8 +63,17 @@ export const REAL_HAND: Shot = { id: "h01", frames: 90, title: "POV · Hero's re
 export const TITLE_FRAMES = 120;
 export const ACT1_FRAMES = TITLE_FRAMES + ACT1_SHOTS.reduce((s, x) => s + x.frames, 0);
 export const ACT2_FRAMES = ACT2_SHOTS.reduce((s, x) => s + x.frames, 0);
-export const ARRIVAL_FRAMES = 750;
-export const VILLAGE_FRAMES = 1050;
+// 100 frames falling through the portal, then 910 waking up (including her
+// first "Status!").
+export const ARRIVAL_FALL = 100;
+export const ARRIVAL_FRAMES = 1010;
+// The Arrival's mystery drone starts this many frames after she lands; the
+// Village picks the same track up DRONE_CARRY frames in, so it plays on.
+export const DRONE_IN = 20;
+export const DRONE_CARRY = ARRIVAL_FRAMES - ARRIVAL_FALL - DRONE_IN;
+// Timed to the recorded takes, with room between lines: Rowan's last line
+// ends at ~1653, then she turns toward the Rhyme Time house.
+export const VILLAGE_FRAMES = 1680;
 export const DOOR_FRAMES = 450;
 export const SHOWCASE_FRAMES = 770;
 export const END_FRAMES = 280;
@@ -78,3 +87,15 @@ export const ACCENT = { mint: "#7ff0c4", peach: "#ffb27a", lavender: "#c3a6ff" }
 // Where the doorway sits in shot s10 (1920x1080 frame). The AI prompt asks for
 // a centred doorway; nudge these to line the portal up with the real clip.
 export const DOORWAY = { x: 770, y: 150, w: 380, h: 800 };
+
+// The camera on the Summoning's first frame, which the Opening's camera ends
+// on, so the cut into the fight is one continuous move. `x` is the world x at
+// screen centre.
+export const FIGHT_CAM = { x: 1060, zoom: 1.08 };
+
+// The fight music's first ~0.45s is silence; MUSIC_SKIP frames of it are
+// skipped so its first hit lands on Rowan's first bolt, which the Opening
+// plays MUSIC_PREROLL frames before the Summoning. The Summoning picks the
+// track up where the Opening leaves it.
+export const MUSIC_SKIP = 13;
+export const MUSIC_PREROLL = 14;

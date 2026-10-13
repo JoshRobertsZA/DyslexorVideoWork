@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, random, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, random, useCurrentFrame } from "remotion";
 import { loadFont as loadCinzel } from "@remotion/google-fonts/Cinzel";
 import { Sprite } from "../components/Sprite";
 import { C, PIXEL } from "../theme";
@@ -144,17 +144,33 @@ export const Waves: React.FC<{ seed: string; count: number; area: { x: number; y
   );
 };
 
-// Realm-style dialogue box with a speaker tag and typewriter text.
-export const Dialogue: React.FC<{ speaker: string; text: string; t: number; dur: number; color?: string; at?: "top" | "bottom" }> = ({
+// Realm-style dialogue box with a speaker tag and typewriter text. `speed` is
+// characters per frame; slow it down to type along with a voice line.
+// `reveal` ([frame, chars] pairs) overrides it, e.g. to hold through a pause.
+export const Dialogue: React.FC<{
+  speaker: string;
+  text: string;
+  t: number;
+  dur: number;
+  color?: string;
+  at?: "top" | "bottom";
+  speed?: number;
+  reveal?: [number, number][];
+}> = ({
   speaker,
   text,
   t,
   dur,
   color = C.gold,
   at = "bottom",
+  speed = 1.4,
+  reveal,
 }) => {
   if (t < 0 || t >= dur) return null;
-  const shown = text.slice(0, Math.floor(t * 1.4));
+  const typed = reveal
+    ? interpolate(t, reveal.map((r) => r[0]), reveal.map((r) => r[1]), { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+    : t * speed;
+  const shown = text.slice(0, Math.floor(typed));
   const pop = Math.min(1, t / 6);
   const out = Math.min(1, (dur - t) / 6);
   return (
