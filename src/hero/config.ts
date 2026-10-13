@@ -1,0 +1,80 @@
+// "Into the Realm": Hero walks through a door and into the Training Realm.
+// Everything that's tuned by hand lives here: Hero's look, the AI footage
+// slots and the length of every act.
+
+export const HERO_NAME = "Hero";
+
+// Hero's realm avatar, stacked from the female avatar layers the app uses.
+// Match these to her AI wardrobe (see docs/AI-SHOTS.md) so the jump into the
+// realm reads as the same person.
+export const HERO_LOOK = {
+  skin: 3 as SkinTone,
+  hair: "brown",
+  outfit: "purple",
+};
+
+type SkinTone = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+// Sampled from public/realm/hero/skin-tone*.png: [light, base, shade].
+export const SKIN: Record<SkinTone, [string, string, string]> = {
+  1: ["#dcc8ab", "#c1ac8f", "#ac7b5d"],
+  2: ["#c6b096", "#ac957a", "#966a50"],
+  3: ["#b29a80", "#987e65", "#815a42"],
+  4: ["#9c8268", "#836850", "#6b4935"],
+  5: ["#876a52", "#6f513b", "#563927"],
+  6: ["#72513a", "#5a3a26", "#40281a"],
+  7: ["#f2e0cc", "#e0c8b0", "#c89e80"],
+  8: ["#c9b080", "#b29668", "#947048"],
+};
+
+export const OUTFIT: Record<string, [string, string]> = {
+  purple: ["#8a5cc2", "#5b3a75"],
+  blue: ["#4f7fd0", "#2f4f8f"],
+  red: ["#d0504a", "#8f2f2a"],
+  green: ["#5fae5a", "#2f6d4f"],
+};
+
+// AI live-action slots. Drop the generated clip in public/footage/ and set
+// `src` (e.g. "footage/s02.mp4"). While `src` is null the shot renders as a
+// slate so the edit can be timed before any footage exists.
+export type Shot = { id: string; frames: number; title: string; src: string | null };
+
+export const ACT1_SHOTS: Shot[] = [
+  { id: "s02", frames: 240, title: "Wide · Hero laughing with friends on the couch", src: null },
+  { id: "s03", frames: 120, title: "MCU · Hero hears a chime, her smile fades", src: null },
+  { id: "s04", frames: 90, title: "OTS · Hero looks toward the dark corridor", src: null },
+  { id: "s05", frames: 90, title: "Medium · \"I'll be right back.\" She stands", src: null },
+  { id: "s06", frames: 150, title: "Tracking · Hero walks the corridor, lights flicker", src: null },
+  { id: "s07", frames: 90, title: "Insert · Mint light under the door", src: null },
+];
+
+export const ACT2_SHOTS: Shot[] = [
+  { id: "s08", frames: 90, title: "CU · Hero's hand on the door handle", src: null },
+  { id: "s09", frames: 90, title: "CU · Door opens, her face lit mint", src: null },
+  { id: "s10", frames: 120, title: "POV · The open doorway (portal composited)", src: null },
+  { id: "s11", frames: 210, title: "MCU · Hesitation: she looks back, then forward", src: null },
+  { id: "s12", frames: 240, title: "Wide from behind · Hero steps into the light", src: null },
+];
+
+// Hero's real hand rising into frame (POV), pixelated into the sprite hand.
+// Optional: with no clip the Arrival goes straight to the pixel hands.
+export const REAL_HAND: Shot = { id: "h01", frames: 90, title: "POV · Hero's real hand rises into frame", src: null };
+
+export const TITLE_FRAMES = 120;
+export const ACT1_FRAMES = TITLE_FRAMES + ACT1_SHOTS.reduce((s, x) => s + x.frames, 0);
+export const ACT2_FRAMES = ACT2_SHOTS.reduce((s, x) => s + x.frames, 0);
+export const ARRIVAL_FRAMES = 750;
+export const VILLAGE_FRAMES = 1050;
+export const DOOR_FRAMES = 450;
+export const SHOWCASE_FRAMES = 770;
+export const END_FRAMES = 280;
+// Frames where one act dissolves into the next (the earlier act keeps
+// playing underneath).
+export const CROSSFADE = 24;
+
+// The three portals, accents from lib/realm/portals.ts.
+export const ACCENT = { mint: "#7ff0c4", peach: "#ffb27a", lavender: "#c3a6ff" };
+
+// Where the doorway sits in shot s10 (1920x1080 frame). The AI prompt asks for
+// a centred doorway; nudge these to line the portal up with the real clip.
+export const DOORWAY = { x: 770, y: 150, w: 380, h: 800 };

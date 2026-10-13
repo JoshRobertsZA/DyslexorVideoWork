@@ -145,19 +145,26 @@ export const Waves: React.FC<{ seed: string; count: number; area: { x: number; y
 };
 
 // Realm-style dialogue box with a speaker tag and typewriter text.
-export const Dialogue: React.FC<{ speaker: string; text: string; t: number; dur: number; color?: string }> = ({
+export const Dialogue: React.FC<{ speaker: string; text: string; t: number; dur: number; color?: string; at?: "top" | "bottom" }> = ({
   speaker,
   text,
   t,
   dur,
   color = C.gold,
+  at = "bottom",
 }) => {
   if (t < 0 || t >= dur) return null;
   const shown = text.slice(0, Math.floor(t * 1.4));
   const pop = Math.min(1, t / 6);
   const out = Math.min(1, (dur - t) / 6);
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 60 }}>
+    <AbsoluteFill
+      style={
+        at === "top"
+          ? { justifyContent: "flex-start", alignItems: "center", paddingTop: 70 }
+          : { justifyContent: "flex-end", alignItems: "center", paddingBottom: 60 }
+      }
+    >
       <div
         style={{
           width: 1400,
