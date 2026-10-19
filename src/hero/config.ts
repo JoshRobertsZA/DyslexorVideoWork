@@ -7,6 +7,11 @@ export const HERO_NAME = "Hero";
 // Hero's realm avatar, stacked from the female avatar layers the app uses.
 // Match these to her AI wardrobe (see docs/AI-SHOTS.md) so the jump into the
 // realm reads as the same person.
+// The quiet boy from her class (the pilot's ending): built from these avatar
+// layers (public/realm/classmate.png, with short hair, no bow and the
+// outfit's trim turned red) so he reads as the boy in the red hoodie.
+export const CLASSMATE_LOOK = { skin: 7 as SkinTone, hair: "black", outfit: "red" };
+
 export const HERO_LOOK = {
   skin: 3 as SkinTone,
   hair: "brown",
@@ -39,41 +44,61 @@ export const OUTFIT: Record<string, [string, string]> = {
 // slate so the edit can be timed before any footage exists.
 export type Shot = { id: string; frames: number; title: string; src: string | null };
 
+// The pilot's real-world scenes (docs/SEASON-1.md): a reading lesson in
+// class. Hero is asked to read aloud and can't; a quiet boy at the back who
+// struggles too watches her. Later, a chime only she hears... and, at the
+// back, he looks up too (c05, flashed back in the pilot's ending). Then the
+// corridor and the door. c02 is drawn in Remotion (the page's swimming
+// letters), so it needs no clip.
 export const ACT1_SHOTS: Shot[] = [
-  { id: "s02", frames: 240, title: "Wide · Hero laughing with friends on the couch", src: null },
-  { id: "s03", frames: 120, title: "MCU · Hero hears a chime, her smile fades", src: null },
-  { id: "s04", frames: 90, title: "OTS · Hero looks toward the dark corridor", src: null },
-  { id: "s05", frames: 90, title: "Medium · \"I'll be right back.\" She stands", src: null },
-  { id: "s06", frames: 150, title: "Tracking · Hero walks the corridor, lights flicker", src: null },
-  { id: "s07", frames: 90, title: "Insert · Mint light under the door", src: null },
+  { id: "s02", frames: 180, title: "Wide · Classroom, afternoon: a reading lesson, students at desks with books open; Hero by the window", src: null },
+  { id: "c01", frames: 120, title: "MCU · The teacher, kind: \"Would you read the next part for us?\" Hero looks down at her book", src: null },
+  { id: "c02", frames: 120, title: "CU · The page, its letters swimming (drawn in Remotion)", src: null },
+  { id: "c03", frames: 180, title: "MCU · Hero freezes; a snigger from a nearby desk; the teacher gently moves on; Hero sinks in her seat", src: null },
+  { id: "c04", frames: 120, title: "MCU · At the back, a quiet boy in a red hoodie watches her, then looks down at his own book", src: null },
+  { id: "s03", frames: 120, title: "MCU · Later: a faint chime; Hero looks up from her book; nobody else seems to hear it", src: null },
+  { id: "c05", frames: 90, title: "CU · At the back, the quiet boy looks up at the same moment, toward the door", src: null },
+  { id: "s04", frames: 90, title: "OTS · Past Hero toward the classroom door and the dim corridor beyond", src: null },
+  { id: "s05", frames: 90, title: "Medium · Hero asks to be excused and slips out", src: null },
+  { id: "s06", frames: 120, title: "Tracking · An empty school corridor; the lights flicker", src: null },
+  { id: "s07", frames: 90, title: "Insert · Mint light under a storeroom door", src: null },
 ];
-
 export const ACT2_SHOTS: Shot[] = [
-  { id: "s08", frames: 90, title: "CU · Hero's hand on the door handle", src: null },
-  { id: "s09", frames: 90, title: "CU · Door opens, her face lit mint", src: null },
+  { id: "s08", frames: 90, title: "CU · Hero's hand on the storeroom door handle", src: null },
+  { id: "s09", frames: 90, title: "CU · The door opens, her face lit mint", src: null },
   { id: "s10", frames: 120, title: "POV · The open doorway (portal composited)", src: null },
-  { id: "s11", frames: 210, title: "MCU · Hesitation: she looks back, then forward", src: null },
-  { id: "s12", frames: 240, title: "Wide from behind · Hero steps into the light", src: null },
+  { id: "s11", frames: 180, title: "MCU · Hesitation: she looks back down the corridor toward her classroom, then forward", src: null },
+  { id: "s12", frames: 210, title: "Wide from behind · Hero steps into the light", src: null },
 ];
 
 // Hero's real hand rising into frame (POV), pixelated into the sprite hand.
 // Optional: with no clip the Arrival goes straight to the pixel hands.
 export const REAL_HAND: Shot = { id: "h01", frames: 90, title: "POV · Hero's real hand rises into frame", src: null };
 
+// Episode 6's ending, back in class. The page close-up in e03 is drawn in
+// Remotion over the clip (Home.tsx), so e03 only needs her face and hands.
+export const HOME_SHOTS: Shot[] = [
+  { id: "e01", frames: 150, title: "Corridor · The storeroom door's light fades; Hero, back, a little dazed", src: null },
+  { id: "e02", frames: 120, title: "Classroom · She sits down; the teacher smiles: \"Would you like to try again?\"", src: null },
+  { id: "e03", frames: 330, title: "MCU · Hero takes a breath and reads the page aloud, slowly", src: null },
+  { id: "e04", frames: 150, title: "Wide · The class claps; Hero grins. At the back, the quiet boy's seat is empty", src: null },
+];
+
 export const TITLE_FRAMES = 120;
 export const ACT1_FRAMES = TITLE_FRAMES + ACT1_SHOTS.reduce((s, x) => s + x.frames, 0);
 export const ACT2_FRAMES = ACT2_SHOTS.reduce((s, x) => s + x.frames, 0);
-// 100 frames falling through the portal, then 910 waking up (including her
-// first "Status!").
+// 100 frames falling through the portal, then 1494 waking up (including the
+// system finding her and Dyslexi explaining her first status window).
 export const ARRIVAL_FALL = 100;
-export const ARRIVAL_FRAMES = 1010;
+export const ARRIVAL_FRAMES = 1594;
 // The Arrival's mystery drone starts this many frames after she lands; the
 // Village picks the same track up DRONE_CARRY frames in, so it plays on.
 export const DRONE_IN = 20;
 export const DRONE_CARRY = ARRIVAL_FRAMES - ARRIVAL_FALL - DRONE_IN;
 // Timed to the recorded takes, with room between lines: Rowan's last line
-// ends at ~1653, then she turns toward the Rhyme Time house.
-export const VILLAGE_FRAMES = 1680;
+// ends at ~1653, Hero answers, then she turns toward the Rhyme Time house and
+// gets her first quest.
+export const VILLAGE_FRAMES = 1800;
 export const DOOR_FRAMES = 450;
 export const SHOWCASE_FRAMES = 770;
 export const END_FRAMES = 280;

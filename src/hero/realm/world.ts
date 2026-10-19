@@ -64,7 +64,20 @@ export const SHEETS = {
   house: "realm/house.png",
   tree: "realm/maple-tree.png",
   fence: "realm/fence.png",
+  // Lamp posts: column 0 dark, column 1 lit.
+  lamp: "realm/lamp.png",
+  // The 3D houses' textures (house3d.ts), cut from realm/house.png.
+  houseFront: "realm/house3d/front.png",
+  houseBack: "realm/house3d/back.png",
+  houseSide: "realm/house3d/side.png",
+  houseRoof: "realm/house3d/roof.png",
+  houseChimney: "realm/house3d/chimney.png",
 };
+
+// The lamps along the main path, alternating sides from the bottom of the path
+// up to the houses. They died the night of the attack (the Opening), so they
+// stand dark until Hero's first word lights them again.
+export const LAMPS = Array.from({ length: 10 }, (_, i) => ({ x: i % 2 ? 24 : -24, y: 180 - i * 90 }));
 
 const onPath = (x: number, y: number, pad: number) =>
   (x > MAIN_PATH.x0 - pad && x < MAIN_PATH.x1 + pad && y > MAIN_PATH.y0 - pad && y < MAIN_PATH.y1 + pad) ||

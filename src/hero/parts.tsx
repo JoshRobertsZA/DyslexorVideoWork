@@ -38,6 +38,21 @@ export const HeroSprite: React.FC<{ row: number; scale: number; flip?: boolean; 
   </div>
 );
 
+// Any realm student stacked from avatar layers (skin, hair, outfit), like
+// Hero's sprite.
+export const avatarLayers = (look: { skin: number; hair: string; outfit: string }) => [
+  `realm/hero/skin-tone${look.skin}.png`,
+  `realm/hero/hair-${look.hair}.png`,
+  `realm/hero/outfit-${look.outfit}.png`,
+];
+export const AvatarSprite: React.FC<{ layers: string[]; row: number; scale: number; col?: number; flip?: boolean; animFps?: number }> = ({ layers, row, scale, col, flip, animFps = 6 }) => (
+  <div style={{ position: "relative", width: 48 * scale, height: 48 * scale, transform: flip ? "scaleX(-1)" : undefined }}>
+    {layers.map((src) => (
+      <Sprite key={src} src={src} row={row} col={col} scale={scale} animFps={animFps} style={{ position: "absolute", left: 0, top: 0 }} />
+    ))}
+  </div>
+);
+
 // Hard 2.39:1 bars for the real-world acts. `open` 0 = bars in, 1 = gone.
 export const Letterbox: React.FC<{ open?: number }> = ({ open = 0 }) => {
   const bar = 138 * (1 - open);

@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, interpolate, random, useCurrentFrame } from "remotion";
 import { loadFont as loadCinzel } from "@remotion/google-fonts/Cinzel";
 import { Sprite } from "../components/Sprite";
-import { C, PIXEL } from "../theme";
+import { BODY, C, PIXEL } from "../theme";
 
 export const EPIC = loadCinzel("normal", { weights: ["400", "700"], subsets: ["latin"] }).fontFamily;
 
@@ -147,6 +147,9 @@ export const Waves: React.FC<{ seed: string; count: number; area: { x: number; y
 // Realm-style dialogue box with a speaker tag and typewriter text. `speed` is
 // characters per frame; slow it down to type along with a voice line.
 // `reveal` ([frame, chars] pairs) overrides it, e.g. to hold through a pause.
+// `readable` sets the words in Lexend, bigger, for lines young and dyslexic
+// readers need to follow. `tail` (a screen x) adds a speech tail under the box
+// pointing down at whoever's talking.
 export const Dialogue: React.FC<{
   speaker: string;
   text: string;
@@ -156,6 +159,8 @@ export const Dialogue: React.FC<{
   at?: "top" | "bottom";
   speed?: number;
   reveal?: [number, number][];
+  readable?: boolean;
+  tail?: number;
 }> = ({
   speaker,
   text,
@@ -165,6 +170,8 @@ export const Dialogue: React.FC<{
   at = "bottom",
   speed = 1.4,
   reveal,
+  readable = false,
+  tail,
 }) => {
   if (t < 0 || t >= dur) return null;
   const typed = reveal
@@ -203,15 +210,33 @@ export const Dialogue: React.FC<{
             left: 36,
             background: color,
             color: C.ink,
-            fontFamily: PIXEL,
-            fontSize: 22,
-            padding: "12px 18px",
+            fontFamily: readable ? BODY : PIXEL,
+            fontWeight: readable ? 700 : undefined,
+            fontSize: readable ? 26 : 22,
+            padding: readable ? "8px 20px" : "12px 18px",
             border: "4px solid #000",
           }}
         >
           {speaker}
         </div>
-        <div style={{ fontFamily: PIXEL, fontSize: 30, lineHeight: 1.7, color: C.cream }}>{shown}</div>
+        <div
+          style={
+            readable
+              ? { fontFamily: BODY, fontWeight: 500, fontSize: 42, lineHeight: 1.4, color: C.cream }
+              : { fontFamily: PIXEL, fontSize: 30, lineHeight: 1.7, color: C.cream }
+          }
+        >
+          {shown}
+        </div>
+        {tail !== undefined && (
+          // Points at screen x `tail`: the box is 1400 wide and centred, and
+          // this is placed from inside its 6px border.
+          <svg width={80} height={48} overflow="visible" style={{ position: "absolute", left: tail - (960 - 700) - 6 - 40, top: "100%" }}>
+            <polygon points="4,4 76,4 34,46" fill="#000" />
+            <polygon points="10,0 70,0 34,37" fill={C.cream} />
+            <polygon points="19,-2 61,-2 34,26" fill="rgb(18,11,28)" />
+          </svg>
+        )}
         {shown.length === text.length && Math.floor(t / 8) % 2 === 0 && (
           <div style={{ position: "absolute", right: 30, bottom: 22, fontFamily: PIXEL, fontSize: 22, color: C.gold }}>▼</div>
         )}

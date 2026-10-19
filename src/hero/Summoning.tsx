@@ -4,10 +4,10 @@ import { Audio } from "@remotion/media";
 import { Grain, Vignette } from "../components/Fx";
 import { Sprite } from "../components/Sprite";
 import { Dialogue, EPIC, ROWAN } from "../lore/parts";
-import { C, PIXEL, TITLE } from "../theme";
+import { C, PIXEL } from "../theme";
 import { ACCENT, FIGHT_CAM, MUSIC_PREROLL, MUSIC_SKIP } from "./config";
 import { DarkWizard, WIZ } from "./DarkWizard";
-import { Backdrop, Foreground, GROUND, NightSky } from "./NightVillage";
+import { Backdrop, Foreground, GROUND, LensFoliage, NightSky } from "./NightVillage";
 import { OPENING_FRAMES } from "./Opening";
 import { track } from "./parts";
 
@@ -16,8 +16,8 @@ import { track } from "./parts";
 // the copy shatters, and with his last spell Rowan summons help from another
 // world. The chime of that spell is the one Hero hears behind her door.
 
-// After the flash: pure white, the narrator's last line, then the title.
-export const SUMMONING_FRAMES = 1050;
+// After the flash: pure white and the narrator's last line, then a beat of white.
+export const SUMMONING_FRAMES = 985;
 // When the summoning chime rings, relative to this act.
 export const SUMMON_CHIME = 800;
 
@@ -48,8 +48,8 @@ const B = {
   flash: 812,
 };
 
-// On the white after the flash: the narrator's last line, then the title.
-const END = { line: 835, lineOut: 955, title: 968 };
+// On the white after the flash: the narrator's last line.
+const END = { line: 835, lineOut: 955 };
 
 // `voice` lines type along with the recording: `speak` is how long the words
 // take, in frames (from the Whisper word timings).
@@ -171,6 +171,15 @@ const clashX = (f: number) =>
     [B.break, 850],
   ]);
 const CLASH_Y = GROUND - 175 * K;
+
+// Close on whoever's talking once the fight stops: the Wizard looming as he
+// closes in ("Your magic is fading..."), then Rowan on his knees ("One spell
+// left..."), cutting back wide as he rises for the summoning. `y` is the
+// zoom's origin, which sets how high the frame sits.
+const CLOSE_UPS = [
+  { from: B.advance - 2, to: 562, x: (f: number) => wizX(f) - 30, zoom: [2.8, 3.2], y: 527 },
+  { from: 562, to: B.rise - 6, x: () => rowanX(B.land) + 30, zoom: [2.4, 2.65], y: 850 },
+];
 
 // Hands, for bolts and beams.
 const rowanHand = (f: number): [number, number] => [rowanX(f) + 62 * K, rowanY(f) - 112 * K];
@@ -801,14 +810,12 @@ const SFX: Cue[] = [
   { src: "final-blast", at: B.finalBlast, hit: 0.02, vol: 0.85, len: 50, fade: 20 },
   { src: "shockwave", at: B.finalBlast + 14, hit: 0.27, vol: 0.7, len: 50, fade: 20 },
   { src: "summon", at: B.finalBlast + 16, hit: 0.24, vol: 1, len: 50 },
-  // A soft swell as the title appears on the white.
-  { src: "summon", at: END.title + 4, hit: 0.24, vol: 0.45, len: 50 },
 ];
 
 
 // ---- On the white ------------------------------------------------------------
 // The narrator's last line, each phrase appearing as it's spoken (Whisper
-// timings from the take, in frames from END.line), then the title.
+// timings from the take, in frames from END.line).
 const END_LINE = {
   voice: "voice/endingvoiceline.mp3",
   phrases: [
@@ -820,8 +827,6 @@ const END_LINE = {
 
 const EndingOnWhite: React.FC<{ f: number }> = ({ f }) => {
   const line = interpolate(f, [END.lineOut - 15, END.lineOut], [1, 0], clamp);
-  const title = interpolate(f, [END.title, END.title + 26], [0, 1], { ...clamp, easing: Easing.out(Easing.quad) });
-  const tag = interpolate(f, [END.title + 30, END.title + 50], [0, 1], clamp);
   return (
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
       <div
@@ -842,23 +847,6 @@ const EndingOnWhite: React.FC<{ f: number }> = ({ f }) => {
             </span>
           );
         })}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
-        <div
-          style={{
-            fontFamily: TITLE,
-            fontSize: 220,
-            color: C.gold,
-            letterSpacing: 10,
-            textShadow: `10px 10px 0 ${C.plum}`,
-            opacity: title,
-            transform: `scale(${1.12 - title * 0.12})`,
-          }}
-        >
-          DYSLEXOR
-        </div>
-        <div style={{ fontFamily: EPIC, fontSize: 44, color: C.plum, opacity: tag }}>Every reader starts somewhere.</div>
-        <div style={{ fontFamily: PIXEL, fontSize: 26, color: C.purple, opacity: tag, marginTop: 10 }}>dyslexor.com</div>
       </div>
     </AbsoluteFill>
   );
@@ -891,10 +879,11 @@ export const Summoning: React.FC = () => {
   const wizHidden = between(f, B.teleport - 1, B.teleport + 5);
 
   // Camera: tight on the shield, out to the duel, follows the dodges, pushes
-  // in on the clash, swings after Rowan, and settles on him for the summoning.
+  // in on the clash, swings after Rowan, cuts close on each of them as they
+  // talk, and goes wide for the summoning.
   const clash = clashX(f);
   // Frame 0 picks up exactly where the Opening's camera ends (see FIGHT_CAM).
-  const cam = track(f, [
+  let cam = track(f, [
     [0, FIGHT_CAM.x],
     [50, 1000],
     [B.slam + 20, 860],
@@ -931,6 +920,15 @@ export const Summoning: React.FC = () => {
     [B.finalBlast + 14, 0.06],
   ])
     if (f >= at && f < at + 12) zoom += k * (1 - (f - at) / 12);
+  // Close-ups (hard cuts in and out), each slowly pushing in.
+  let focusY = GROUND - 260;
+  const close = CLOSE_UPS.find((c) => between(f, c.from, c.to));
+  if (close) {
+    const t = interpolate(f, [close.from, close.to], [0, 1], ease);
+    cam = close.x(f);
+    zoom = close.zoom[0] + (close.zoom[1] - close.zoom[0]) * t;
+    focusY = close.y;
+  }
 
   const corrupt = interpolate(f, [0, B.break, B.ring, B.flash], [0.8, 1, 1, 0.3], clamp);
   let lightning = 0;
@@ -956,7 +954,7 @@ export const Summoning: React.FC = () => {
       <AbsoluteFill
         style={{
           transform: `translate(${sk.x}px, ${sk.y + rise * (540 - PORTAL_CY)}px) scale(${1.02 * zoom})`,
-          transformOrigin: `960px ${GROUND - 260 + rise * (PORTAL_CY - (GROUND - 260))}px`,
+          transformOrigin: `960px ${focusY + rise * (PORTAL_CY - focusY)}px`,
           filter: impact ? "invert(1) grayscale(1) contrast(4)" : undefined,
         }}
       >
@@ -1057,6 +1055,7 @@ export const Summoning: React.FC = () => {
         <AbsoluteFill style={{ background: "rgba(30,20,70,0.12)", pointerEvents: "none" }} />
         <Vignette strength={0.6} />
       </AbsoluteFill>
+      <LensFoliage f={bg} cam={cam} />
 
       <SpeedLines f={f} cx={toScreen(f < B.finalBlast - 20 ? clash : PORTAL.x)} cy={f < B.finalBlast - 20 ? CLASH_Y : 540} o={speed} />
       <AbsoluteFill style={{ backgroundColor: "#fff", opacity: whiteHit }} />

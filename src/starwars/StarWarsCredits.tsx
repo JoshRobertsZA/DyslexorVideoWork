@@ -221,7 +221,10 @@ export const StarWarsCredits: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: "#000", overflow: "hidden", opacity: fadeOut }}>
       {frame < INTRO_END ? (
-        <AbsoluteFill style={{ justifyContent: "center", alignItems: "flex-start", paddingLeft: 380 }}>
+        <AbsoluteFill
+          style={{ justifyContent: "center", alignItems: "flex-start", paddingLeft: 380 }}
+          from={7}
+        >
           <div style={{ fontFamily: CRAWL_FONT, fontSize: 58, lineHeight: 1.35, color: BLUE, opacity: intro }}>
             A long time ago in a realm far,
             <br />

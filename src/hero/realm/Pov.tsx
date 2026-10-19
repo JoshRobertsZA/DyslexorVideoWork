@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, continueRender, delayRender, staticFile, useCurrentFrame } from "remotion";
 import { FPS } from "../../theme";
 import { HAND_H, HAND_W, HandPose, getHands } from "./hands";
+import { drawHouse, HOUSE_DEPTH, HouseTex, texOf } from "./house3d";
 import { HOUSES, HOUSE_Y, RING_R, RING_Y, SCATTER, SHEETS, getGround } from "./world";
 
 // First-person view of the realm. The floor is drawn Mode 7 style: every
@@ -14,6 +15,8 @@ export const LW = 640;
 export const LH = 360;
 const FOCAL = 457; // ~70 degree field of view (the default lens)
 const FAR = 1100;
+// Nearer than this (texels), sprites draw over the horizon haze.
+const HAZE_NEAR = 160;
 
 export type Cam = {
   x: number;
@@ -186,7 +189,8 @@ export const Pov: React.FC<PovProps> = ({ cam: camIn, actors = [], hands = [], s
   useLayoutEffect(() => {
     const canvas = ref.current;
     if (!canvas || !imgs) return;
-    const ctx = canvas.getContext("2d")!;
+    // Read back every frame for the drain, so keep its pixels on the CPU.
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
     ctx.imageSmoothingEnabled = false;
     const cam = full(camIn);
     const FOCAL = cam.focal;
@@ -331,13 +335,24 @@ export const Pov: React.FC<PovProps> = ({ cam: camIn, actors = [], hands = [], s
         }
       };
 
-    const houseFrame = Math.floor(frame / 5) % 12;
+    // Houses are real 3D buildings (house3d.ts): log walls, a gable roof and
+    // a chimney, fixed in the world, so they sit on the ground and walking
+    // past one shows its front, side and roof in perspective.
+    const houseTex: HouseTex = {
+      front: texOf(imgs.houseFront),
+      back: texOf(imgs.houseBack),
+      side: texOf(imgs.houseSide),
+      roof: texOf(imgs.houseRoof),
+      chimney: texOf(imgs.houseChimney),
+    };
     for (const h of HOUSES) {
       boards.push({
         x: h.x,
-        y: HOUSE_Y,
+        y: HOUSE_Y - HOUSE_DEPTH / 2,
         d: 0,
-        draw: sheetDraw(imgs.house, (houseFrame % 6) * 80, Math.floor(houseFrame / 6) * 136, 80, 136, 130),
+        // On the keep layer (things that stay in colour), a house nearer than
+        // them cuts them out rather than painting itself.
+        draw: (c) => drawHouse(c, cam, h.x, HOUSE_Y, houseTex, [fr, fg, fb], FAR, LW, LH, frame, depth, c === kctx),
       });
     }
     for (const s of SCATTER) {
@@ -385,7 +400,21 @@ export const Pov: React.FC<PovProps> = ({ cam: camIn, actors = [], hands = [], s
       kctx.clearRect(0, 0, LW, LH);
     }
     let kept = false;
+    // Haze band over the far floor and the far sprites near the horizon.
+    // It goes down once everything far has been drawn and before anything
+    // near, so a house or a person close by is never fogged.
+    let hazed = false;
+    const drawHaze = () => {
+      const haze = ctx.createLinearGradient(0, hz - 30, 0, hz + 40);
+      haze.addColorStop(0, `rgba(${fr},${fg},${fb},0)`);
+      haze.addColorStop(0.45, `rgba(${fr},${fg},${fb},0.55)`);
+      haze.addColorStop(1, `rgba(${fr},${fg},${fb},0)`);
+      ctx.fillStyle = haze;
+      ctx.fillRect(0, hz - 30, LW, 70);
+      hazed = true;
+    };
     for (const { b, p } of visible) {
+      if (!hazed && p.d < HAZE_NEAR) drawHaze();
       const fog = Math.min(1, Math.max(0, (p.d - 220) / (FAR - 220))) ** 1.2;
       if (b.shadow) {
         ctx.fillStyle = `rgba(20,30,20,${0.28 * (1 - fog)})`;
@@ -426,13 +455,7 @@ export const Pov: React.FC<PovProps> = ({ cam: camIn, actors = [], hands = [], s
         kept = true;
       }
     }
-    // Haze band over the far floor and sprites near the horizon.
-    const haze = ctx.createLinearGradient(0, hz - 30, 0, hz + 40);
-    haze.addColorStop(0, `rgba(${fr},${fg},${fb},0)`);
-    haze.addColorStop(0.45, `rgba(${fr},${fg},${fb},0.55)`);
-    haze.addColorStop(1, `rgba(${fr},${fg},${fb},0)`);
-    ctx.fillStyle = haze;
-    ctx.fillRect(0, hz - 30, LW, 70);
+    if (!hazed) drawHaze();
 
     // The stolen words: everything but Hero (and the game portals) goes grey.
     if (drain > 0) {

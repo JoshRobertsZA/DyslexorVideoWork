@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Easing, Img, interpolate, random, staticFile } from "remotion";
-import { C, PIXEL } from "../../theme";
+import { BODY, C, PIXEL } from "../../theme";
 import { ACCENT, HERO_NAME } from "../config";
 import { HeroSprite } from "../parts";
 
@@ -117,16 +117,18 @@ export const Hud: React.FC<{ stats: Stats; appear?: number; glitch?: number; t?:
 
 // ---- Boot-up ----------------------------------------------------------------
 
-export const BOOT_FRAMES = 96;
+// Paced to be read: each line types out slowly and sits before the next.
+export const BOOT_FRAMES = 160;
+export const BOOT_WELCOMED = 82; // "Welcome, ..." has finished typing
 
-// As she first opens her eyes: mint lines draw a frame, the system finds her,
-// then the readout shrinks into the corner as the HUD.
+// The system finds her: mint lines draw a frame, a scan sweeps her view and
+// it greets her by name, then the readout fades.
 export const HudBoot: React.FC<{ t: number; stats: Stats }> = ({ t, stats }) => {
   if (t < 0 || t > BOOT_FRAMES + 20) return null;
-  const draw = interpolate(t, [0, 14], [0, 1], { ...clamp, easing: Easing.out(Easing.quad) });
+  const draw = interpolate(t, [0, 22], [0, 1], { ...clamp, easing: Easing.out(Easing.quad) });
   const out = interpolate(t, [BOOT_FRAMES - 16, BOOT_FRAMES], [1, 0], clamp);
-  const type = (from: number, text: string) => text.slice(0, Math.max(0, Math.floor((t - from) * 1.6)));
-  const scan = interpolate(t, [4, 30], [0, 1], clamp);
+  const type = (from: number, text: string) => text.slice(0, Math.max(0, Math.floor((t - from) * 0.8)));
+  const scan = interpolate(t, [4, 40], [0, 1], clamp);
   return (
     <AbsoluteFill style={{ pointerEvents: "none", opacity: out }}>
       {/* A scan line sweeping the view */}
@@ -141,10 +143,10 @@ export const HudBoot: React.FC<{ t: number; stats: Stats }> = ({ t, stats }) => 
         <div key={i} style={{ position: "absolute", background: RIM, boxShadow: `0 0 12px ${RIM}`, ...s }} />
       ))}
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", flexDirection: "column", gap: 26 }}>
-        <div style={{ fontFamily: PIXEL, fontSize: 22, color: RIM, letterSpacing: 6, textShadow: `0 0 16px ${RIM}` }}>{type(16, "READER DETECTED")}</div>
-        <div style={{ fontFamily: PIXEL, fontSize: 52, color: C.cream, textShadow: "6px 6px 0 #000" }}>{type(36, `Welcome, ${HERO_NAME}`)}</div>
+        <div style={{ fontFamily: PIXEL, fontSize: 22, color: RIM, letterSpacing: 6, textShadow: `0 0 16px ${RIM}` }}>{type(22, "READER DETECTED")}</div>
+        <div style={{ fontFamily: PIXEL, fontSize: 52, color: C.cream, textShadow: "6px 6px 0 #000" }}>{type(62, `Welcome, ${HERO_NAME}`)}</div>
         <div style={{ fontFamily: PIXEL, fontSize: 22, color: C.gold, textShadow: "4px 4px 0 #000" }}>
-          {type(58, `Lv ${stats.level}  ·  ${fmt(stats.xp)} XP`)}
+          {type(100, `Lv ${stats.level}  ·  ${fmt(stats.xp)} XP`)}
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
@@ -228,76 +230,267 @@ export const LevelUp: React.FC<{ t: number; level: number }> = ({ t, level }) =>
 
 export const STATS_OPEN = 12;
 
-// Opened at big moments: a menu that snaps open from a line, like SAO's.
-export const StatsScreen: React.FC<{ t: number; dur: number; stats: Stats; badges: string[]; locked?: string[]; skills: string[] }> = ({
+// A part of the stats screen to point at while it's being explained: it
+// glows gold and everything else dims.
+export type StatsFocus = "hero" | "xp" | "words";
+// A label popping beside the level ("LEVEL UP!") or the words count ("+1
+// WORD"), `k` 0..1 for how far it's in.
+export type StatsPop = { on: "xp" | "words"; text: string; k: number };
+
+// Drawn like the realm's dialogue box (cream border, black outline, solid
+// plum) so the two read as one interface, with every word in Lexend and big
+// enough to read at a glance.
+const CARD = "linear-gradient(#24152f, #170d22)";
+// The panel's size, so a scene can sit things on its edges.
+export const STATS_PANEL = { w: 1240, h: 540 };
+const WELL = "#0b0712";
+
+const PopTag: React.FC<{ pop?: StatsPop; on: StatsPop["on"] }> = ({ pop, on }) =>
+  pop && pop.on === on && pop.k > 0 ? (
+    <div
+      style={{
+        fontFamily: BODY,
+        fontWeight: 700,
+        fontSize: 28,
+        color: C.ink,
+        background: C.gold,
+        padding: "6px 16px",
+        border: "4px solid #000",
+        borderRadius: 10,
+        boxShadow: `0 0 26px ${C.gold}`,
+        opacity: pop.k,
+        transform: `scale(${0.6 + 0.4 * pop.k}) rotate(-4deg)`,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {pop.text}
+    </div>
+  ) : null;
+
+// A chunky rounded bar with tick marks every tenth, like a game's health bar.
+const FatBar: React.FC<{ value: number; max: number; color: string; light: string }> = ({ value, max, color, light }) => {
+  const k = Math.max(0, Math.min(1, value / max));
+  return (
+    <div style={{ position: "relative", height: 34, borderRadius: 17, background: WELL, border: "4px solid #000", overflow: "hidden" }}>
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: `${k * 100}%`,
+          borderRadius: 13,
+          background: `linear-gradient(${light}, ${color} 60%)`,
+          boxShadow: k > 0 ? `0 0 16px ${color}` : undefined,
+        }}
+      />
+      {Array.from({ length: 9 }, (_, i) => (
+        <div key={i} style={{ position: "absolute", left: `${(i + 1) * 10}%`, top: 6, bottom: 6, width: 3, background: "rgba(255,255,255,0.08)" }} />
+      ))}
+    </div>
+  );
+};
+
+// A round or square icon chip at the start of a row.
+const Chip: React.FC<{ color: string; round?: boolean; children: React.ReactNode }> = ({ color, round, children }) => (
+  <div
+    style={{
+      width: 64,
+      height: 64,
+      flexShrink: 0,
+      borderRadius: round ? 32 : 14,
+      background: color,
+      border: "4px solid #000",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: BODY,
+      fontWeight: 700,
+      fontSize: 26,
+      color: C.ink,
+    }}
+  >
+    {children}
+  </div>
+);
+
+// A gold arrow pulsing at the left of the row being explained.
+const Pointer: React.FC<{ t: number }> = ({ t }) => (
+  <div
+    style={{
+      position: "absolute",
+      left: -40,
+      top: "50%",
+      width: 0,
+      height: 0,
+      borderTop: "16px solid transparent",
+      borderBottom: "16px solid transparent",
+      borderLeft: `22px solid ${C.gold}`,
+      filter: `drop-shadow(0 0 8px ${C.gold})`,
+      transform: `translate(${Math.sin(t / 4) * 6}px, -50%)`,
+    }}
+  />
+);
+
+// Opened at big moments: a menu that snaps open from a line. `offsetY` moves
+// the panel (not the dimmed backdrop) up or down the frame.
+export const StatsScreen: React.FC<{
+  t: number;
+  dur: number;
+  stats: Stats;
+  badges: string[];
+  locked?: string[];
+  skills: string[];
+  focus?: StatsFocus;
+  pop?: StatsPop;
+  offsetY?: number;
+}> = ({
   t,
   dur,
   stats,
   badges,
   locked = [],
   skills,
+  focus,
+  pop,
+  offsetY = 0,
 }) => {
   if (t < 0 || t > dur) return null;
-  const open = Math.min(interpolate(t, [0, STATS_OPEN], [0.02, 1], { ...clamp, easing: Easing.out(Easing.cubic) }), interpolate(t, [dur - 10, dur], [1, 0.02], clamp));
+  const open = Math.min(interpolate(t, [0, STATS_OPEN], [0.02, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) }), interpolate(t, [dur - 10, dur], [1, 0.02], clamp));
   const content = interpolate(t, [STATS_OPEN - 2, STATS_OPEN + 8, dur - 12, dur - 8], [0, 1, 1, 0], clamp);
+  const lit = (part: StatsFocus | "other"): React.CSSProperties =>
+    !focus
+      ? {}
+      : part === focus
+        ? { background: "rgba(246,201,69,0.10)", boxShadow: `0 0 0 4px ${C.gold}, 0 0 34px ${C.gold}55` }
+        : { opacity: 0.4 };
+  const realSkills = skills.filter((s) => s !== "None yet");
+  const allBadges = [...badges, ...locked];
+  const label: React.CSSProperties = { fontFamily: BODY, fontWeight: 700, fontSize: 34, color: C.cream };
+  const count: React.CSSProperties = { fontFamily: BODY, fontWeight: 500, fontSize: 26, color: C.lilac, marginLeft: "auto" };
+  const row: React.CSSProperties = { borderRadius: 18, padding: "14px 20px" };
   return (
     <AbsoluteFill style={{ pointerEvents: "none", justifyContent: "center", alignItems: "center" }}>
-      <AbsoluteFill style={{ background: "rgba(5,4,12,0.45)", opacity: open }} />
-      <Panel style={{ position: "relative", width: 1180, height: 620, transform: `scaleY(${open})`, padding: 0 }}>
-        <div style={{ opacity: content, display: "flex", height: "100%" }}>
-          {/* Portrait */}
-          <div style={{ width: 360, borderRight: `3px solid ${RIM}55`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
-            <div style={{ width: 300, height: 300, border: `3px solid ${RIM}`, background: "rgba(127,240,196,0.08)", overflow: "hidden", position: "relative" }}>
-              <div style={{ position: "absolute", left: 150 - 24.5 * 9, top: 150 - 32 * 9 }}>
-                <HeroSprite row={0} scale={9} animFps={5} />
+      <AbsoluteFill style={{ background: "rgba(5,4,12,0.5)", opacity: open }} />
+      <div
+        style={{
+          position: "relative",
+          width: STATS_PANEL.w,
+          height: STATS_PANEL.h,
+          background: CARD,
+          border: `6px solid ${C.cream}`,
+          outline: "6px solid #000",
+          borderRadius: 20,
+          boxShadow: "14px 14px 0 rgba(0,0,0,0.5)",
+          transform: `translateY(${offsetY}px) scaleY(${open})`,
+        }}
+      >
+        {/* Title tab, like the dialogue box's speaker tag */}
+        <div
+          style={{
+            position: "absolute",
+            top: -34,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: C.gold,
+            border: "4px solid #000",
+            borderRadius: 10,
+            padding: "6px 30px",
+            fontFamily: BODY,
+            fontWeight: 700,
+            fontSize: 30,
+            letterSpacing: 4,
+            color: C.ink,
+            opacity: content,
+          }}
+        >
+          STATUS
+        </div>
+        <div style={{ opacity: content, display: "flex", gap: 36, height: "100%", padding: "48px 44px 40px" }}>
+          {/* Who she is */}
+          <div style={{ ...row, width: 330, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, ...lit("hero") }}>
+            <div
+              style={{
+                width: 290,
+                height: 290,
+                borderRadius: 20,
+                border: "4px solid #000",
+                background: `radial-gradient(circle at 50% 45%, #4a3470, #1d1230 75%)`,
+                boxShadow: `inset 0 0 0 3px ${C.purple}`,
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
+              <div style={{ position: "absolute", left: 145 - 24.5 * 10, top: 160 - 32 * 10 }}>
+                <HeroSprite row={0} scale={10} animFps={5} />
               </div>
             </div>
-            <div style={{ fontSize: 26, letterSpacing: 3 }}>{HERO_NAME.toUpperCase()}</div>
-            <div style={{ fontSize: 12, color: RIM, letterSpacing: 3 }}>READER</div>
+            <div style={{ fontFamily: BODY, fontWeight: 700, fontSize: 44, color: C.cream, lineHeight: 1 }}>{HERO_NAME}</div>
+            <div style={{ fontFamily: BODY, fontWeight: 500, fontSize: 22, color: RIM, border: `3px solid ${RIM}`, borderRadius: 20, padding: "4px 18px" }}>Reader</div>
           </div>
-          {/* Numbers */}
-          <div style={{ flex: 1, padding: "40px 44px", display: "flex", flexDirection: "column", gap: 26 }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 20 }}>
-              <div style={{ fontSize: 14, color: C.lilac }}>LEVEL</div>
-              <div style={{ fontSize: 46, color: C.gold }}>{stats.level}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: C.lilac, marginBottom: 10 }}>
-                XP {fmt(stats.xp)} / {fmt(stats.xpMax)}
+
+          {/* What she's got */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 26 }}>
+            <div style={{ ...row, position: "relative", ...lit("xp") }}>
+              {focus === "xp" && <Pointer t={t} />}
+              <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 12 }}>
+                <Chip color={C.gold} round>
+                  LV
+                </Chip>
+                <div style={label}>
+                  Level <span style={{ color: C.gold }}>{stats.level}</span>
+                </div>
+                <PopTag pop={pop} on="xp" />
+                <div style={count}>
+                  {fmt(stats.xp)} / {fmt(stats.xpMax)} XP
+                </div>
               </div>
-              <Bar value={stats.xp} max={stats.xpMax} width={700} color={C.gold} height={18} />
+              <FatBar value={stats.xp} max={stats.xpMax} color={C.gold} light="#fff1b0" />
             </div>
-            <div>
-              <div style={{ fontSize: 12, color: C.lilac, marginBottom: 10 }}>
-                WORDS RESTORED {fmt(stats.words)} / {fmt(stats.wordsMax)}
+
+            <div style={{ ...row, position: "relative", ...lit("words") }}>
+              {focus === "words" && <Pointer t={t} />}
+              <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 12 }}>
+                <Chip color={RIM}>Aa</Chip>
+                <div style={label}>Words restored</div>
+                <PopTag pop={pop} on="words" />
+                <div style={count}>
+                  {fmt(stats.words)} / {fmt(stats.wordsMax)}
+                </div>
               </div>
-              <Bar value={stats.words} max={stats.wordsMax} width={700} color={RIM} height={18} />
+              {/* Never shows less than a sliver once she has one, so a single word reads. */}
+              <FatBar value={stats.words > 0 ? Math.max(stats.words, stats.wordsMax * 0.012) : 0} max={stats.wordsMax} color={RIM} light="#d6fff0" />
             </div>
-            <div>
-              <div style={{ fontSize: 12, color: C.lilac, marginBottom: 12 }}>BADGES</div>
-              <div style={{ display: "flex", gap: 14 }}>
-                {[...badges, ...locked].map((b, i) => (
+
+            <div style={{ ...row, display: "flex", alignItems: "center", gap: 18, ...lit("other") }}>
+              <div style={{ ...label, fontSize: 30 }}>Badges</div>
+              <div style={{ display: "flex", gap: 12, marginLeft: 10 }}>
+                {allBadges.map((b, i) => (
                   <Img
                     key={b}
                     src={staticFile(`badges/${b}.svg`)}
-                    style={{ width: 72, height: 72, filter: i < badges.length ? `drop-shadow(0 0 8px ${C.gold}88)` : "grayscale(1) brightness(0.35)" }}
+                    style={{ width: 70, height: 70, filter: i < badges.length ? `drop-shadow(0 0 8px ${C.gold}88)` : "grayscale(1) brightness(0.55)", opacity: i < badges.length ? 1 : 0.75 }}
                   />
                 ))}
               </div>
+              <div style={count}>
+                {badges.length} / {allBadges.length}
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: 12, color: C.lilac, marginBottom: 12 }}>SKILLS</div>
-              <div style={{ display: "flex", gap: 14 }}>
-                {skills.map((s) => (
-                  <div key={s} style={{ fontSize: 14, color: C.gold, border: `2px solid ${C.gold}88`, padding: "10px 14px" }}>
-                    ✦ {s}
+
+            {realSkills.length > 0 && (
+              <div style={{ ...row, display: "flex", alignItems: "center", gap: 14, ...lit("other") }}>
+                <div style={{ ...label, fontSize: 30 }}>Skills</div>
+                {realSkills.map((s) => (
+                  <div key={s} style={{ fontFamily: BODY, fontWeight: 500, fontSize: 24, color: C.gold, border: `3px solid ${C.gold}`, borderRadius: 12, padding: "6px 16px" }}>
+                    {s}
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
-      </Panel>
+      </div>
     </AbsoluteFill>
   );
 };

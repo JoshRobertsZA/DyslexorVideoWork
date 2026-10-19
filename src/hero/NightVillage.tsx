@@ -331,6 +331,52 @@ export const Backdrop: React.FC<{ f: number; cam: number; corrupt: number; lamps
   </AbsoluteFill>
 );
 
+// Leaves right up against the lens, soft and out of focus, poking into the
+// bottom corners. They slide past faster than anything in the world, which
+// sells the depth whenever the camera moves. Drawn over the zoomed world, so
+// they stay the same size in close-ups.
+const LENS_LEAVES = [
+  { x: -120, y: 1010, r: 230 },
+  { x: 380, y: 1120, r: 170 },
+  { x: 1700, y: 1060, r: 260 },
+  { x: 2350, y: 1100, r: 190 },
+  { x: 3050, y: 1030, r: 240 },
+];
+export const LensFoliage: React.FC<{ f: number; cam: number; day?: number }> = ({ f, cam, day = 0 }) => {
+  const leaf = interpolateColors(day, [0, 1], ["#050c09", "#1a2c12"]);
+  const rim = interpolateColors(day, [0, 1], ["#0c1a14", "#6b7a2a"]);
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none", filter: "blur(9px)" }}>
+      {LENS_LEAVES.map((l, i) => {
+        const x = l.x - (cam - 960) * 1.9 + Math.sin(f / 35 + i) * 10;
+        return (
+          <div key={i} style={{ position: "absolute", left: x - l.r, top: l.y - l.r, width: l.r * 2, height: l.r * 2 }}>
+            {[0, 1, 2, 3, 4].map((k) => {
+              const a = (k / 5) * Math.PI * 2 + i;
+              const rr = l.r * (0.45 + 0.12 * (k % 2));
+              return (
+                <div
+                  key={k}
+                  style={{
+                    position: "absolute",
+                    left: l.r + Math.cos(a) * l.r * 0.45 - rr,
+                    top: l.r + Math.sin(a) * l.r * 0.4 - rr,
+                    width: rr * 2,
+                    height: rr * 1.6,
+                    borderRadius: "50%",
+                    background: `radial-gradient(ellipse at 40% 25%, ${rim}, ${leaf} 55%)`,
+                    transform: `rotate(${a * 30}deg)`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
 // Dark grass and bushes in front of the action, framing the bottom of the shot.
 export const Foreground: React.FC<{ f: number; cam: number; day?: number }> = ({ f, cam, day = 0 }) => (
   <Layer cam={cam} depth={1.35} style={{ pointerEvents: "none", filter: day > 0 ? `brightness(${1 + 1.4 * day}) sepia(${0.3 * day})` : undefined }}>

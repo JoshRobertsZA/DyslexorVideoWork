@@ -1,16 +1,18 @@
 import React from "react";
 import { AbsoluteFill, Easing, interpolate, random, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { Audio } from "@remotion/media";
+import { Sprite } from "../components/Sprite";
 import { Dialogue } from "../lore/parts";
 import { C, PIXEL } from "../theme";
 import { ACCENT, ARRIVAL_FALL, ARRIVAL_FRAMES, DRONE_IN, HERO_LOOK, HERO_NAME, OUTFIT, REAL_HAND, SKIN } from "./config";
 import { Footage } from "./Footage";
 import { HeroSprite, RealmTitle, track } from "./parts";
 import { villageActors } from "./Village";
-import { START_STATS, StatsScreen } from "./hud/Hud";
+import { BOOT_FRAMES, HudBoot, START_STATS, Stats, STATS_PANEL, StatsFocus, StatsPop, StatsScreen } from "./hud/Hud";
+import { DYSLEXI_COLOR } from "./hud/Dyslexi";
 import { HandPose } from "./realm/hands";
 import { Cam, LH, Pov } from "./realm/Pov";
-import { DRAIN, SCORCH } from "./realm/world";
+import { DRAIN, SCORCH, SHEETS } from "./realm/world";
 
 // Act 3. Hero falls through the portal Rowan tore open and tumbles out of the
 // sky into the realm, the morning after the Dark Wizard's attack. She lands
@@ -42,6 +44,15 @@ const lids = (f: number) =>
     [100, 1],
   ]);
 
+// Out of focus as she comes round, sharpening once her eyes are properly open.
+const groggy = (f: number) =>
+  track(f, [
+    [18, 16],
+    [60, 9],
+    [100, 3],
+    [130, 0],
+  ]);
+
 const horizon = (f: number) =>
   track(f, [
     [0, 620],
@@ -55,15 +66,185 @@ const HANDS_DOWN = 500;
 
 // She pulls out her phone, flips to the front camera and sees herself 8-bit.
 export const PHONE = { up: 525, rest: 560, flip: 588, snap: 655, down: 700, gone: 728 };
-const LINES = [
+// The world finds her: once the phone is away and she's had a beat, the
+// system scans her view and a voice greets her ("Welcome, hero!"). She reacts,
+// and as the greeting fades her status window opens for the first time on its
+// own. With it comes the voice's owner, Dyslexi, her guide: she tells Hero
+// where she is and what the window means, lighting up each part as she goes,
+// and sends her off to find Rowan. Dyslexi's lines are timed to her takes
+// (Whisper word timings, in frames from each line's start).
+const BOOT = 740;
+const OPEN = BOOT + BOOT_FRAMES - 8;
+type Line = {
+  from: number;
+  dur: number;
+  text: string;
+  guide?: boolean;
+  focus?: StatsFocus;
+  voice?: string;
+  speak?: number;
+  reveal?: [number, number][];
+};
+// Heard, not seen: it lands as "Welcome, Hero" types out on the boot screen.
+const WELCOME = { at: BOOT + 60, voice: "voice/dyslexi-voiceline1.mp3", len: 45 };
+// She jumps on this one.
+const SQUARES: Line = { from: 682, dur: 50, text: "I'm made of squares!" };
+const G0 = OPEN + 16;
+const LINES: Line[] = [
+  // Puzzling over her hands: the left one up, turned to the palm, the right
+  // one up, the fingers flexing in jumpy steps, then reaching for her phone.
+  { from: 242, dur: 52, text: "Huh? My hand looks... weird." },
+  { from: 298, dur: 46, text: "It's all blocky!" },
+  { from: 376, dur: 46, text: "This one too?!" },
+  { from: 426, dur: 58, text: "Why do my fingers move like that?" },
+  { from: 488, dur: 44, text: "I need to see my face..." },
   { from: 605, dur: 75, text: "Wait... is that me?" },
-  { from: 682, dur: 50, text: "I'm... 8-bit?!" },
-  { from: 742, dur: 60, text: "Hang on... if this is a game..." },
-  { from: 806, dur: 26, text: "Status!" },
+  SQUARES,
+  { from: WELCOME.at + 44, dur: 50, text: "Huh?! Who said that?" },
+  {
+    from: G0,
+    dur: 166,
+    guide: true,
+    focus: "hero",
+    text: "Don't worry, Hero! I'm your guide. You're inside a game world now.",
+    voice: "voice/dyslexi-voiceline2.mp3",
+    speak: 145,
+    reveal: [
+      [0, 0],
+      [37, 18],
+      [54, 18],
+      [77, 34],
+      [95, 34],
+      [145, 66],
+    ],
+  },
+  {
+    from: G0 + 170,
+    dur: 150,
+    guide: true,
+    focus: "xp",
+    text: "Play word games to earn XP. Fill the bar to level up!",
+    voice: "voice/dyslexi-voiceline3.mp3",
+    speak: 124,
+    reveal: [
+      [0, 0],
+      [60, 27],
+      [75, 27],
+      [124, 53],
+    ],
+  },
+  {
+    from: G0 + 324,
+    dur: 134,
+    guide: true,
+    focus: "words",
+    text: "Every word you get right brings a word back to this world.",
+    voice: "voice/dyslexi-voiceline4.mp3",
+    speak: 107,
+    reveal: [
+      [0, 0],
+      [107, 58],
+    ],
+  },
+  {
+    from: G0 + 462,
+    dur: 112,
+    guide: true,
+    text: "Now go and find Elder Rowan! He needs your help!",
+    voice: "voice/dyslexi-voiceline5.mp3",
+    speak: 87,
+    reveal: [
+      [0, 0],
+      [49, 28],
+      [59, 28],
+      [87, 48],
+    ],
+  },
 ];
-// Like any isekai, her status window only appears when she calls for it: the
-// first time is here, on "Status!".
-const STATUS = { at: 832, dur: 72 };
+const STATUS = { at: OPEN, dur: G0 + 462 + 112 + 6 - OPEN };
+const during = (f: number, l: Line) => f >= l.from && f < l.from + l.dur;
+const focusAt = (f: number) => LINES.find((l) => l.focus && during(f, l))?.focus;
+
+// Dyslexi shows what she means as she says it: the XP bar fills on "Fill the
+// bar" and she levels up on "up!", then the word count ticks up on "brings a
+// word back". Both are only previews and reset after their line, so the
+// Village still starts her at level 1. The colour coming back is saved for
+// Rowan's demo in the Village.
+const XP_LINE = LINES.find((l) => l.focus === "xp")!;
+const WORDS_LINE = LINES.find((l) => l.focus === "words")!;
+const XP_FILL = XP_LINE.from + 75;
+const XP_FULL = XP_LINE.from + 114;
+const WORD_BACK = WORDS_LINE.from + 68;
+const lineEnd = (l: Line) => l.from + l.dur;
+const demoStats = (f: number): Stats => ({
+  ...START_STATS,
+  xp: during(f, XP_LINE) ? interpolate(f, [XP_FILL, XP_FULL], [0, START_STATS.xpMax], clamp) : 0,
+  level: during(f, XP_LINE) && f >= XP_FULL ? 2 : START_STATS.level,
+  words: during(f, WORDS_LINE) && f >= WORD_BACK ? 1 : 0,
+});
+const popIn = (f: number, at: number, l: Line) => interpolate(f, [at, at + 8, lineEnd(l) - 10, lineEnd(l)], [0, 1, 1, 0], clamp);
+const demoPop = (f: number): StatsPop | undefined =>
+  during(f, XP_LINE)
+    ? { on: "xp", text: "LEVEL UP!", k: popIn(f, XP_FULL, XP_LINE) }
+    : during(f, WORDS_LINE)
+      ? { on: "words", text: "+1 WORD", k: popIn(f, WORD_BACK, WORDS_LINE) }
+      : undefined;
+
+// Dyslexi on her perch: she hops up onto the status panel's top-left corner
+// as she introduces herself and sits with her paws over its border, so she
+// and the window read as one thing. Her dialogue box points down at her. She
+// faces the viewer the whole time (a gold arrow marks the row she's
+// explaining), bounces while she talks, and hops off before the panel closes.
+const PANEL_OFFSET = 140;
+const PANEL_TOP = 540 - STATS_PANEL.h / 2 + PANEL_OFFSET;
+const PANEL_LEFT = 960 - STATS_PANEL.w / 2;
+// Where her feet rest: just inside the corner, over the border.
+const PERCH = { x: PANEL_LEFT + 92, y: PANEL_TOP + 30 };
+const DYS_PX = 6;
+// Her idle loop without its eyes-shut frame (column 4 of the sheet), so she
+// keeps looking out at the viewer; that frame only comes back as a quick
+// blink every few seconds.
+const dyslexiCol = (f: number, talking: boolean) => (f % 97 < 3 ? 4 : Math.floor((f / 30) * (talking ? 10 : 6)) % 4);
+const Guide: React.FC<{ f: number }> = ({ f }) => {
+  const end = STATUS.at + STATUS.dur;
+  const inT = interpolate(f, [G0 - 6, G0 + 10], [0, 1], { ...clamp, easing: Easing.out(Easing.quad) });
+  const outT = interpolate(f, [end - 28, end - 14], [0, 1], { ...clamp, easing: Easing.in(Easing.quad) });
+  if (inT <= 0 || outT >= 1) return null;
+  const talking = LINES.some((l) => l.guide && l.speak && f >= l.from && f < l.from + l.speak);
+  // Up onto the corner from the left in an arc, and off it the same way.
+  const x = PERCH.x - (1 - inT) * 170 - outT * 170;
+  const lift = Math.sin(inT * Math.PI) * 80 + Math.sin(outT * Math.PI) * 80 - outT * 60;
+  const bounce = talking ? Math.abs(Math.sin(f / 3.2)) * 8 : 0;
+  const seated = inT >= 1 && outT <= 0;
+  return (
+    <>
+      {/* Her shadow on the panel's top edge, so she sits rather than floats */}
+      <div
+        style={{
+          position: "absolute",
+          left: PERCH.x - 62,
+          top: PERCH.y - 12,
+          width: 124,
+          height: 18,
+          borderRadius: "50%",
+          background: "rgba(0,0,0,0.45)",
+          opacity: seated ? 1 : Math.max(0, 1 - lift / 60),
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: x - 25.5 * DYS_PX,
+          top: PERCH.y - 43 * DYS_PX - lift - bounce,
+          opacity: Math.min(1, inT * 2, 1 - outT),
+          filter: "drop-shadow(0 6px 0 rgba(0,0,0,0.35))",
+        }}
+      >
+        <Sprite src={SHEETS.dyslexi} row={0} col={dyslexiCol(f, talking)} scale={DYS_PX} />
+      </div>
+    </>
+  );
+};
 // Sets off walking as the window closes, at the Village's pace by the end.
 const WALK = { from: STATUS.at + STATUS.dur - 30, to: WAKE_FRAMES };
 
@@ -165,36 +346,55 @@ const Waking: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
-      <Pov
-        cam={{
-          x: 0,
-          y: posY,
-          heading: sway,
-          eye: 26 + walk * 0.7,
-          horizon: hz + walk * 2,
-        }}
-        actors={worried(f)}
-        hands={hands}
-        sky="dawn"
-        drain={DRAIN}
-        scorch={SCORCH}
-      >
-        <Canopy lift={interpolate(hz, [128, 620], [900, 0], clamp)} />
-        <ClosingPortal f={f} hz={hz} />
-        <RealmTitle opacity={title} />
-        <StatsScreen
-          t={f - STATUS.at}
-          dur={STATUS.dur}
-          stats={START_STATS}
-          badges={[]}
-          locked={["beginner", "spelling-star", "vowel-team-whiz", "comeback-kid", "grandmaster"]}
-          skills={["None yet"]}
-        />
-        {phone > 0 && <Phone lift={phone} cam={{ x: 0, y: posY, heading: sway }} />}
-        {LINES.map((l) => (
-          <Dialogue key={l.from} speaker={HERO_NAME} text={l.text} t={f - l.from} dur={l.dur} color={C.lilac} at="top" />
-        ))}
-      </Pov>
+      <AbsoluteFill style={{ filter: groggy(f) > 0 ? `blur(${groggy(f)}px)` : undefined }}>
+        <Pov
+          cam={{
+            x: 0,
+            y: posY,
+            heading: sway,
+            eye: 26 + walk * 0.7,
+            horizon: hz + walk * 2,
+          }}
+          actors={worried(f)}
+          hands={hands}
+          sky="dawn"
+          drain={DRAIN}
+          scorch={SCORCH}
+        >
+          <Canopy lift={interpolate(hz, [128, 620], [900, 0], clamp)} />
+          <ClosingPortal f={f} hz={hz} />
+          <RealmTitle opacity={title} />
+          <HudBoot t={f - BOOT} stats={START_STATS} />
+          {/* Low enough for Dyslexi to sit on top, under her dialogue box. */}
+          <StatsScreen
+            offsetY={PANEL_OFFSET}
+            focus={focusAt(f)}
+            pop={demoPop(f)}
+            t={f - STATUS.at}
+            dur={STATUS.dur}
+            stats={demoStats(f)}
+            badges={[]}
+            locked={["beginner", "spelling-star", "vowel-team-whiz", "comeback-kid", "grandmaster"]}
+            skills={[]}
+          />
+          {phone > 0 && <Phone lift={phone} cam={{ x: 0, y: posY, heading: sway }} />}
+          {LINES.map((l) => (
+            <Dialogue
+              key={l.from}
+              speaker={l.guide ? "Dyslexi" : HERO_NAME}
+              text={l.text}
+              t={f - l.from}
+              dur={l.dur}
+              color={l.guide ? DYSLEXI_COLOR : C.lilac}
+              at="top"
+              reveal={l.reveal}
+              readable
+              tail={l.guide ? PERCH.x : undefined}
+            />
+          ))}
+          <Guide f={f} />
+        </Pov>
+      </AbsoluteFill>
 
       {REAL_HAND.src && (
         <Sequence from={HAND_IN - 20} durationInFrames={REAL_HAND.frames} name="Real hand → pixels">
@@ -202,11 +402,42 @@ const Waking: React.FC = () => {
         </Sequence>
       )}
 
-      {/* Eyelids */}
-      <AbsoluteFill style={{ pointerEvents: "none" }}>
-        <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: `${(1 - open) * 52}%`, background: "#000", borderRadius: "0 0 50% 50% / 0 0 30% 30%" }} />
-        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: `${(1 - open) * 52}%`, background: "#000", borderRadius: "50% 50% 0 0 / 30% 30% 0 0" }} />
-      </AbsoluteFill>
+      <Eyelids open={open} />
+    </AbsoluteFill>
+  );
+};
+
+// Her eyelids from the inside: black with an almond-shaped gap that is widest
+// in the middle and pinched at the corners. The upper lid travels further than
+// the lower one, and both are soft-edged (they're right against the lens).
+const Eyelids: React.FC<{ open: number }> = ({ open }) => {
+  if (open >= 1) return null;
+  const W = 1920;
+  const cy = 560;
+  // The corners show while she's squinting, then spread off-screen so at full
+  // open the gap clears the whole frame.
+  const l = interpolate(open, [0, 1], [120, -700]);
+  const r = W - l;
+  const up = 1100 * open + 1400 * open ** 4;
+  const down = 0.7 * up;
+  // Rounded lids: a cubic with its handles a fifth in from each corner peaks at
+  // three quarters of the handles' offset.
+  const hx = (r - l) * 0.2;
+  const k = 4 / 3;
+  const gap =
+    open > 0
+      ? `M${l},${cy} C${l + hx},${cy - k * up} ${r - hx},${cy - k * up} ${r},${cy} C${r - hx},${cy + k * down} ${l + hx},${cy + k * down} ${l},${cy} Z`
+      : "";
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
+        <defs>
+          <filter id="lid-soft" x="-0.1" y="-0.1" width="1.2" height="1.2">
+            <feGaussianBlur stdDeviation={10 + 30 * open} />
+          </filter>
+        </defs>
+        <path d={`M-300,-300 H2220 V1380 H-300 Z ${gap}`} fillRule="evenodd" fill="#000" filter="url(#lid-soft)" />
+      </svg>
     </AbsoluteFill>
   );
 };
@@ -428,8 +659,25 @@ export const Arrival: React.FC = () => (
     <Sequence from={FALL + DRONE_IN} durationInFrames={WAKE_FRAMES - DRONE_IN} name="♪ mystery">
       <Audio src={staticFile("music/mystery-drone.mp3")} volume={(t) => droneVolume(t + DRONE_IN)} />
     </Sequence>
+    <Sequence from={FALL + BOOT} durationInFrames={50} name="🔊 reader detected">
+      <Audio src={staticFile("sfx/ui-boot.mp3")} volume={0.45} />
+    </Sequence>
     <Sequence from={FALL + STATUS.at} durationInFrames={50} name="🔊 status window">
       <Audio src={staticFile("sfx/ui-boot.mp3")} volume={0.55} />
+    </Sequence>
+    <Sequence from={FALL + WELCOME.at} durationInFrames={WELCOME.len} name="🗣 Dyslexi (unseen)">
+      <Audio src={staticFile(WELCOME.voice)} volume={1} />
+    </Sequence>
+    {LINES.filter((l) => l.voice).map((l) => (
+      <Sequence key={l.from} from={FALL + l.from} durationInFrames={l.dur} name="🗣 Dyslexi">
+        <Audio src={staticFile(l.voice!)} volume={1} />
+      </Sequence>
+    ))}
+    <Sequence from={FALL + XP_FULL} durationInFrames={30} name="🔊 level up (preview)">
+      <Audio src={staticFile("sfx/ui-blip.mp3")} volume={0.6} />
+    </Sequence>
+    <Sequence from={FALL + WORD_BACK} durationInFrames={30} name="🔊 +1 word (preview)">
+      <Audio src={staticFile("sfx/ui-blip.mp3")} volume={0.6} />
     </Sequence>
     <Sequence from={FALL} durationInFrames={WAKE_FRAMES} name="🔊 morning wind">
       <Audio src={staticFile("sfx/ambience.mp3")} volume={(t) => interpolate(t, [0, 40, WAKE_FRAMES - 30, WAKE_FRAMES], [0, 0.35, 0.35, 0.2], clamp)} />
@@ -561,10 +809,28 @@ const Phone: React.FC<{ lift: number; cam: Cam }> = ({ lift, cam }) => {
   const pressFlip = f >= PHONE.flip - 4 && f < PHONE.flip + 2;
   const pressShutter = f >= PHONE.snap - 3 && f < PHONE.snap + 3;
   // On "I'm... 8-bit?!" she jumps, sprite style.
-  const hopT = f - LINES[1].from;
+  const hopT = f - SQUARES.from;
   const hop = hopT >= 0 && hopT < 16 ? (Math.floor(hopT / 4) % 2 === 0 ? -2 : -1) * 7 : 0;
+  // For the big reveal she pulls the phone in close, so her 8-bit face fills
+  // the middle of the frame, then lets it drift back as she lowers it.
+  const push = interpolate(f, [SQUARES.from - 40, SQUARES.from - 4, PHONE.down - 6, PHONE.gone - 8], [0, 1, 1, 0], {
+    ...clamp,
+    easing: Easing.inOut(Easing.cubic),
+  });
+  const mid = { x: PH.left + (PH.w * U) / 2, y: PH.top + (PH.h * U) / 2 };
+  const closer = `translate(${(960 - mid.x) * push}px, ${(640 - mid.y) * push}px) scale(${1 + 0.75 * push})`;
   return (
-    <div style={{ position: "absolute", left, top, width: PH.w * U, height: PH.h * U }}>
+    <div
+      style={{
+        position: "absolute",
+        left,
+        top,
+        width: PH.w * U,
+        height: PH.h * U,
+        transform: closer,
+        transformOrigin: `${(PH.w * U) / 2}px ${(PH.h * U) / 2}px`,
+      }}
+    >
       {/* Forearm, foreshortened: it points almost straight at her, so it drops
           steeply from the wrist and widens fast toward the camera. */}
       <Arm y0={42 * U} y1={1180 - PH.top} l0={3 * U} r0={17 * U} l1={3 * U + 50} r1={17 * U + 400} g={U} />

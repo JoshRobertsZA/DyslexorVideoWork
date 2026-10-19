@@ -3,11 +3,11 @@ import { AbsoluteFill, Easing, interpolate, interpolateColors, random, Sequence,
 import { Audio } from "@remotion/media";
 import { Exclaim, Grain, Vignette } from "../components/Fx";
 import { Sprite } from "../components/Sprite";
-import { Dialogue, EPIC, ROWAN } from "../lore/parts";
-import { C, PIXEL } from "../theme";
+import { Dialogue, ROWAN } from "../lore/parts";
+import { BODY, C, PIXEL } from "../theme";
 import { ACCENT, FIGHT_CAM, MUSIC_PREROLL, MUSIC_SKIP } from "./config";
 import { DarkWizard, WIZ } from "./DarkWizard";
-import { Backdrop, Foreground, GROUND, Layer, NightSky } from "./NightVillage";
+import { Backdrop, Foreground, GROUND, Layer, LensFoliage, NightSky } from "./NightVillage";
 import { track } from "./parts";
 
 // The narrated opening, before the fight. Golden hour in the realm of words:
@@ -470,23 +470,83 @@ const Standoff: React.FC<{ f: number }> = ({ f }) => {
   );
 };
 
+// Letters right in front of the lens while the realm is golden: big, soft and
+// out of focus, sliding past faster than anything in the world. The film opens
+// on one of them, sharp, rising toward the camera and blurring as it passes.
+const LensLetters: React.FC<{ f: number; cam: number; dim: number }> = ({ f, cam, dim }) => {
+  if (dim <= 0) return null;
+  const glow = `0 0 30px ${C.gold}, 0 0 70px #ffb24a`;
+  const first = interpolate(f, [0, 140], [0, 1], clamp);
+  const pass = interpolate(f, [70, 140], [0, 1], { ...clamp, easing: Easing.in(Easing.quad) });
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none", overflow: "hidden" }}>
+      {first < 1 && (
+        <div
+          style={{
+            position: "absolute",
+            left: 960 + Math.sin(f / 30) * 24,
+            top: 760 - first * 420,
+            fontFamily: PIXEL,
+            fontSize: 150,
+            color: C.cream,
+            textShadow: glow,
+            opacity: interpolate(f, [0, 18, 110, 140], [0, 1, 1, 0], clamp),
+            filter: `blur(${pass * 14}px)`,
+            transform: `translate(-50%, -50%) scale(${1 + pass * 2.2}) rotate(${Math.sin(f / 20) * 6}deg)`,
+          }}
+        >
+          A
+        </div>
+      )}
+      {Array.from({ length: 9 }, (_, i) => {
+        const life = 260 + random(`ll-l${i}`) * 160;
+        const t = ((f + random(`ll-o${i}`) * life) % life) / life;
+        const x = -700 + random(`ll-x${i}`) * 3300 - (cam - 960) * 1.7 + Math.sin(f / 50 + i) * 40;
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: x,
+              top: 1250 - t * 1600,
+              fontFamily: PIXEL,
+              fontSize: 160 + (i % 3) * 70,
+              color: i % 3 ? C.gold : C.cream,
+              textShadow: glow,
+              opacity: Math.sin(t * Math.PI) * (0.25 + (i % 3) * 0.1) * dim,
+              filter: `blur(${7 + (i % 3) * 3}px)`,
+              transform: `rotate(${Math.sin(f / 40 + i) * 12}deg)`,
+            }}
+          >
+            {LETTERS[(i * 7 + 3) % 26]}
+          </div>
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
 const Subtitle: React.FC<{ f: number; at: number; sub: Sub }> = ({ f, at, sub }) => {
   const t = f - at - sub.from;
   const dur = sub.to - sub.from;
   if (t < 0 || t > dur) return null;
   const a = interpolate(t, [0, 8, dur - 10, dur], [0, 1, 1, 0], clamp);
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 90 }}>
+    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 80 }}>
+      {/* Lexend, big, on a soft dark band: easy to read for every viewer. */}
       <div
         style={{
-          fontFamily: EPIC,
-          fontSize: 46,
-          lineHeight: 1.4,
+          fontFamily: BODY,
+          fontWeight: 500,
+          fontSize: 54,
+          lineHeight: 1.35,
           color: C.cream,
           textAlign: "center",
           maxWidth: 1500,
-          letterSpacing: 1,
-          textShadow: "0 3px 0 #000, 0 0 30px #000, 0 0 60px #000",
+          padding: "14px 36px",
+          borderRadius: 18,
+          background: "rgba(8, 6, 20, 0.55)",
+          textShadow: "0 2px 0 #000, 0 0 24px #000",
           opacity: a,
           filter: `blur(${(1 - a) * 5}px)`,
         }}
@@ -497,25 +557,33 @@ const Subtitle: React.FC<{ f: number; at: number; sub: Sub }> = ({ f, at, sub })
   );
 };
 
-// Camera: drifts across the realm to Rowan, settles on him, pulls back as
-// the light goes, turns toward the knocking and pushes in on the eyes, then
-// the standoff's pans.
+// Camera, shot by shot. Tight on the golden sky as one letter rises past the
+// lens, a crane down and out to reveal the realm, a glide in toward the
+// letters in the trees, a hard cut to Rowan's close-up as he introduces
+// himself, then back and up to the sky as day drains into night, down onto
+// the road for the knocking, pushing in on the eyes, then the standoff's pans.
+// `camX` is the world x at the centre, `zoom` scales about (960, `focusY`).
+const ROWAN_CU = 318;
 const camX = (f: number) =>
   track(f, [
-      [0, 1350],
-      [300, 760],
-      [480, 700],
-      [580, 820],
+      [0, 1250],
+      [95, 1190],
+      [200, 1020],
+      [ROWAN_CU - 1, 820],
+      [ROWAN_CU, ROWAN_X - 4],
+      [470, ROWAN_X - 14],
+      [545, 700],
+      [600, 800],
       [690, 1150],
       [775, 1300],
       [S.laugh, 1300],
-      [S.laugh + 14, 1360],
-      [S.rowan - 6, 1360],
-      // Whip pan to Rowan, back for "Make me.", then wide for the split.
-      [S.rowan + 6, 700],
-      [S.makeMe - 8, 700],
-      [S.makeMe + 4, 1360],
-      [S.split - 4, 1360],
+      [S.laugh + 14, 1390],
+      [S.rowan - 6, 1390],
+      // Whip pan to Rowan's close-up, back for "Make me.", then wide for the split.
+      [S.rowan + 6, ROWAN_X - 4],
+      [S.makeMe - 8, ROWAN_X - 4],
+      [S.makeMe + 4, 1390],
+      [S.split - 4, 1390],
       [S.split + 8, 980],
       // Drift toward the shield as the letters fly, into the fight's first frame.
       [OPENING_FRAMES, FIGHT_CAM.x],
@@ -534,17 +602,23 @@ export const Opening: React.FC = () => {
 
   const cam = camX(f);
   const zoom = track(f, [
-    [320, 1],
-    [470, 1.12],
-    [540, 1],
+    [0, 2.7],
+    [95, 2.45],
+    [200, 1.1],
+    [ROWAN_CU - 1, 1.5],
+    [ROWAN_CU, 3],
+    [470, 3.3],
+    [545, 1],
+    [610, 1.25],
+    [690, 1],
     [700, 1],
     [790, 1.35],
-    [S.laugh + 14, 1.45],
-    [S.rowan - 6, 1.45],
-    [S.rowan + 6, 1.3],
-    [S.makeMe - 8, 1.3],
-    [S.makeMe + 4, 1.65],
-    [S.split - 4, 1.65],
+    [S.laugh + 14, 2],
+    [S.rowan - 6, 2.3],
+    [S.rowan + 6, 2.4],
+    [S.makeMe - 8, 2.7],
+    [S.makeMe + 4, 3],
+    [S.split - 4, 3.2],
     [S.split + 8, 1],
     // The fight scales its world by 1.02, so match that here.
     [OPENING_FRAMES, FIGHT_CAM.zoom * 1.02],
@@ -553,6 +627,28 @@ export const Opening: React.FC = () => {
   let kick = 0;
   for (const k of KNOCKS) if (f >= k && f < k + 8) kick += 0.025 * (1 - (f - k) / 8);
   const shake = KNOCKS.reduce((a, k) => a + (f >= k && f < k + 10 ? (1 - (f - k) / 10) * 10 : 0), 0);
+
+  const focusY = track(f, [
+    [0, 140],
+    [95, 170],
+    [200, GROUND - 260],
+    [ROWAN_CU - 1, 420],
+    // His face a little above centre, hat to knees in frame.
+    [ROWAN_CU, 730],
+    [470, 722],
+    [545, GROUND - 260],
+    [610, 300],
+    [690, GROUND - 260],
+    [790, GROUND - 260],
+    // Close on each of them as they talk: his hood and eyes, Rowan hat to knees.
+    [S.laugh + 14, 527],
+    [S.rowan - 6, 527],
+    [S.rowan + 6, 730],
+    [S.makeMe - 8, 730],
+    [S.makeMe + 4, 527],
+    [S.split - 4, 527],
+    [S.split + 8, GROUND - 260],
+  ]);
 
   const turned = f >= 690;
   const alarmed = f >= KNOCKS[0] && f < KNOCKS[0] + 40;
@@ -564,7 +660,7 @@ export const Opening: React.FC = () => {
         style={{
           opacity: fadeIn,
           transform: `translate(${Math.sin(f * 2.3) * shake}px, ${Math.cos(f * 3.1) * shake * 0.6}px) scale(${zoom + kick})`,
-          transformOrigin: `960px ${GROUND - 260}px`,
+          transformOrigin: `960px ${focusY}px`,
         }}
       >
         <NightSky f={f} cam={cam} corrupt={corrupt} flash={flash} lit={0} litX={0} day={day} />
@@ -588,8 +684,14 @@ export const Opening: React.FC = () => {
         <Foreground f={f} cam={cam} day={day} />
         <AbsoluteFill style={{ background: "rgba(30,20,70,0.12)", opacity: 1 - day, pointerEvents: "none" }} />
         {/* Ends on the fight's 0.6 so the cut matches */}
+        {/* Golden hour: warm light pouring in from the low sun. */}
+        <AbsoluteFill
+          style={{ background: "radial-gradient(ellipse at 72% 18%, #ffcf8a66, transparent 60%)", mixBlendMode: "screen", opacity: day, pointerEvents: "none" }}
+        />
         <Vignette strength={0.45 + 0.15 * (1 - day)} />
       </AbsoluteFill>
+      <LensFoliage f={f} cam={cam} day={day} />
+      <LensLetters f={f} cam={cam} dim={day} />
 
       {/* Shade under the subtitles so they read over the ground */}
       <AbsoluteFill

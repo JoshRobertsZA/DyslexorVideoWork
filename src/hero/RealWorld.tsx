@@ -5,6 +5,7 @@ import { EPIC } from "../lore/parts";
 import { C } from "../theme";
 import { ACCENT, ACT1_SHOTS, ACT2_SHOTS, CROSSFADE, DOORWAY, Shot, TITLE_FRAMES } from "./config";
 import { Footage } from "./Footage";
+import { RealPage } from "./realm/swim";
 import { Letterbox } from "./parts";
 import { Pov } from "./realm/Pov";
 
@@ -120,8 +121,17 @@ const Portal: React.FC = () => {
   );
 };
 
+// c02: the page she's asked to read, close, its letters swimming. Drawn
+// here, so the shot needs no clip.
+const CardSwim: React.FC = () => {
+  const f = useCurrentFrame();
+  return <RealPage f={f} />;
+};
+
 const overlayFor = (id: string, frames: number) => {
   switch (id) {
+    case "c02":
+      return <CardSwim />;
     case "s07":
       return <PixelDust area={{ x: 760, y: 900, w: 400 }} count={34} rise={260} />;
     case "s09":
