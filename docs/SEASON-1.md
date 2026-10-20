@@ -51,14 +51,14 @@ from her own class who struggles just like her, and who chose the other side.
 | 2 | **Real life**: the reading lesson; asked to read aloud, the letters swim, a snigger; the quiet boy at the back watches. The chime: she hears it… and so does he. The corridor, the storeroom door, the light. | 1:11 | (in `IntoTheRealm-1`) | AI shots to make (`docs/AI-SHOTS.md`); the page close-up is drawn |
 | 3 | **Arrival**: falling, waking 8-bit, the hands, the selfie, Dyslexi, the status window | 0:53 | `RealmArrival-2` | Done |
 | 4 | **The village**: the townsfolk, Rowan, the quest | 1:00 | `RealmVillage-3` | Done |
-| 5 | **The game**: "Go on, open the door!" The Rhyme Time house pulls her in and flings her into space: Rhyme Time as it is in the app (the purple night sky, the planet, "Which word rhymes with…", four answers, three dots). CAT (a wrong pick, then HAT), BALL, BEE. The stars gather into LIGHT; back in the village the lamps relight and everyone cheers. | 1:22 | `RealmTrial-4` | Built (lines to record) |
+| 5 | **The game**: "Go on, open the door!" The moment she steps through it, the door teleports her into the cockpit of a spaceship in a launch bay under the house. The shutters open on the bay wall; it launches up the silo and out through the glowing ring in front of the house, into space: Rhyme Time as it is in the app (the purple night sky, the planet), with the game on the windshield ("Which word rhymes with…", four answers, three dots). CAT (a wrong pick, then HAT), BALL, BEE. The stars gather into LIGHT; she flies it home, in low over the village as the colour floods back and down the silo, then steps out of the front door as the lamps relight and everyone cheers. | 1:40 | `RealmTrial-4` | Built (lines to record) |
 | 6 | **The suspense ending**: far away, the Wizard watches her win in his orb. "So. Rowan found himself a reader." A voice in the shadows: "…I know her." A hooded boy steps into the torchlight. "She can't read either. Everyone laughed." The hood comes down: the boy from her class (a flash of him looking up at the chime). "Not like you… my apprentice." *To be continued…* | 0:30 | `RealmLair-5` | Built (lines to record; the flash needs AI shot c05) |
-| | **Total** | **≈ 6:06** | | |
+| | **Total** | **≈ 6:24** | | |
 
 ### Lines to record for the pilot's new scenes
 
 **The game** (`Trial.tsx`)
-- Dyslexi: "Psst! Did you miss me?" / "Cats don't do goodbyes. Come on!" / "This is the Rhyme Time house. Go on, open the door!" / "Whoa! Hold on!" / "Welcome to Rhyme Time!" / "Listen to the end. C-at… h-at!" / "See? I told you. I'm a READING cat, I know talent." / "One down!"
+- Dyslexi: "Psst! Did you miss me?" / "Cats don't do goodbyes. Come on!" / "This is the Rhyme Time house. Go on, open the door!" / "Surprise! The house is just the front door." / "Hold on to your whiskers!" / "Welcome to Rhyme Time!" / "Next stop: home!" / "Home sweet home." / "Listen to the end. C-at… h-at!" / "See? I told you. I'm a READING cat, I know talent." / "One down!"
 - Farmer: "Light! Real light!"
 
 **The ending** (`Lair.tsx`)
