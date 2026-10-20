@@ -30,6 +30,18 @@ from her own class who struggles just like her, and who chose the other side.
   alone (Ep 3) → starts to believe it (Ep 4) → faces her worst fear (Ep 5) →
   reads aloud in class (Ep 6).
 
+## How we talk about reading
+
+Most of the kids watching find reading hard too, so the show is on their side:
+
+- **No line says anyone "can't read".** Reading is slow, hard, or the letters
+  swim. Never impossible.
+- **Nobody's taunt is about how someone reads,** not even the Wizard's. His
+  weapon is getting kids to give up ("Give up. Go home."), and that's the
+  thing the story answers.
+- **Struggling is shown from the inside** (the swimming letters, a breath, a
+  finger on the page), not as something to laugh at.
+
 ## Episodes
 
 | # | Title | What it's about | Ends on | Built? |
@@ -38,7 +50,7 @@ from her own class who struggles just like her, and who chose the other side.
 | 2 | **Taken** | The Wizard and his apprentice come to the village: LIGHT torn back out, the townsfolk frozen, Rowan hurt, Dyslexi taken. Hero wants to quit; "one word at a time". She stays. | Dyslexi in her cage, the apprentice guarding it | Mostly built (`Strike.tsx`) |
 | 3 | **Spelling Sprint** | The second house, alone. She spells a broken bridge back together, letter by letter. The apprentice tries to beat her to it. | Half the village in colour; shadow letters creep out of the forest | New |
 | 4 | **Word Match** | Shadow letters attack; she matches each to its word to turn it back to light. She and the apprentice face each other. | The last house blazes; a path opens through the Word Maze | New |
-| 5 | **The Word Maze** | The journey, the N·E·P·O door, the top of the tower, the storm of swimming letters | "I… I can't…" | Partly built (`Tower.tsx`) |
+| 5 | **The Word Maze** | The journey, the N·E·P·O door, the top of the tower, the storm of swimming letters | "It's too much… too fast…" | Partly built (`Tower.tsx`) |
 | 6 | **One Word at a Time** | FREE. The words fly home, the village is whole, the way home opens. Back in class, she reads aloud. | The quiet boy's empty seat. Far away, the tower window glows. Season 2. | Mostly built (`Tower.tsx`, `Home.tsx`) |
 
 ## The pilot · Someone Heard (about 6 minutes, built)
@@ -52,7 +64,7 @@ from her own class who struggles just like her, and who chose the other side.
 | 3 | **Arrival**: falling, waking 8-bit, the hands, the selfie, Dyslexi, the status window | 0:53 | `RealmArrival-2` | Done |
 | 4 | **The village**: the townsfolk, Rowan, the quest | 1:00 | `RealmVillage-3` | Done |
 | 5 | **The game**: "Go on, open the door!" The moment she steps through it, the door teleports her into the cockpit of a spaceship in a launch bay under the house. The shutters open on the bay wall; it launches up the silo and out through the glowing ring in front of the house, into space: Rhyme Time as it is in the app (the purple night sky, the planet), with the game on the windshield ("Which word rhymes with…", four answers, three dots). CAT (a wrong pick, then HAT), BALL, BEE. The stars gather into LIGHT; she flies it home, in low over the village as the colour floods back and down the silo, then steps out of the front door as the lamps relight and everyone cheers. | 1:40 | `RealmTrial-4` | Built (lines to record) |
-| 6 | **The suspense ending**: far away, the Wizard watches her win in his orb. "So. Rowan found himself a reader." A voice in the shadows: "…I know her." A hooded boy steps into the torchlight. "She can't read either. Everyone laughed." The hood comes down: the boy from her class (a flash of him looking up at the chime). "Not like you… my apprentice." *To be continued…* | 0:30 | `RealmLair-5` | Built (lines to record; the flash needs AI shot c05) |
+| 6 | **The suspense ending**: far away, the Wizard watches her win in his orb. "So. Rowan found himself a reader." A voice in the shadows: "…I know her." A hooded boy steps into the torchlight. "She's just like me. The letters swim for her too." The hood comes down: the boy from her class (a flash of him looking up at the chime). "Then watch her closely… my apprentice." *To be continued…* | 0:30 | `RealmLair-5` | Built (lines to record; the flash needs AI shot c05) |
 | | **Total** | **≈ 6:24** | | |
 
 ### Lines to record for the pilot's new scenes
@@ -62,8 +74,8 @@ from her own class who struggles just like her, and who chose the other side.
 - Farmer: "Light! Real light!"
 
 **The ending** (`Lair.tsx`)
-- Dark Wizard: "So. Rowan found himself a reader." / "Of course you do. She sits in your class." / "Then she won't last long. Not like you… my apprentice."
-- The apprentice: "…I know her." / "She can't read either. Everyone laughed."
+- Dark Wizard: "So. Rowan found himself a reader." / "Of course you do. She sits in your class." / "Then watch her closely… my apprentice."
+- The apprentice: "…I know her." / "She's just like me. The letters swim for her too."
 
 **Real life** (AI shots, native audio)
 - Teacher: "Would you read the next part for us?"

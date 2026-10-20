@@ -85,7 +85,7 @@ const LINES: Line[] = [
   },
   { from: ROOM + 30, dur: 56, who: "dyslexi", text: "Hero! You came!" },
   { from: ROOM + 100, dur: 124, who: "wizard", text: "You came. How very brave. How very foolish." },
-  { from: STORM.quiet + 10, dur: 76, who: "hero", text: "I... I can't..." },
+  { from: STORM.quiet + 10, dur: 76, who: "hero", text: "It's too much... too fast..." },
   {
     from: SAY,
     dur: BLAST - SAY + 6,

@@ -45,8 +45,8 @@ export const OUTFIT: Record<string, [string, string]> = {
 export type Shot = { id: string; frames: number; title: string; src: string | null };
 
 // The pilot's real-world scenes (docs/SEASON-1.md): a reading lesson in
-// class. Hero is asked to read aloud and can't; a quiet boy at the back who
-// struggles too watches her. Later, a chime only she hears... and, at the
+// class. Hero is asked to read aloud and the letters swim; a quiet boy at the
+// back who finds reading hard too watches her. Later, a chime only she hears... and, at the
 // back, he looks up too (c05, flashed back in the pilot's ending). Then the
 // corridor and the door. c02 is drawn in Remotion (the page's swimming
 // letters), so it needs no clip.
