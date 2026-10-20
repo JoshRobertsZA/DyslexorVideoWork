@@ -23,12 +23,12 @@ training grounds, never "games" or "apps", and there's no store, link or
 
 | | Wants | Fears / flaw | Arc |
 |---|---|---|---|
-| **Hero** | To fit in, to not be "the one who can't read" | Reading out loud; letters that swim | Hides it → is pushed to her lowest by the Wizard → reads the word that saves everyone → reads out loud at home, proudly |
+| **Hero** | To fit in, and to keep how hard reading feels a secret | Reading out loud; letters that swim | Hides it → is pushed to her lowest by the Wizard → reads the word that saves everyone → reads out loud at home, proudly |
 | **Dyslexi** (cat with glasses, her guide) | To help Hero, to be taken seriously ("I'm a READING cat") | Being useless when it matters | Comic relief and coach; gets captured, so Hero has to save *her* |
 | **Elder Rowan** | To protect the realm | He's hurt and out of magic | Passes the torch: gives Hero the idea that saves the day |
 | **The Dark Wizard** | Every word, so no one can read, so no one can tell him no | People who don't give up on words | Wins in the prologue, wins again at the midpoint, loses to one slowly-read word; escapes for next time |
 
-The Wizard's motive in one line for kids: *"A world that can't read can't tell
+The Wizard's motive in one line for kids: *"A world without words can't tell
 me no."*
 
 ## Things that come back (callbacks kids notice)
@@ -38,9 +38,10 @@ me no."*
 - **The lamps.** They die in the prologue. The first word Hero wins is
   **LIGHT**, and the lamps relight. The Wizard snuffs them; at the end they all
   come back.
-- **The card.** At home she can't read a game card and hides it in her hoodie
-  pocket. It comes through the portal with her (8-bit), she stares at it at her
-  lowest point, and the last scene is her reading it out loud.
+- **The card.** At home a game card's letters swim when she tries to read it,
+  so she hides it in her hoodie pocket. It comes through the portal with her
+  (8-bit), she stares at it at her lowest point, and the last scene is her
+  reading it out loud.
 - **"One word at a time."** Rowan → Hero → home.
 - **"I'm a READING cat."** Dyslexi's running joke.
 
@@ -62,7 +63,7 @@ me no."*
 | # | Scene | Length | Where it is | State |
 |---|---|---|---|---|
 | 1 | Cold open: the realm of words, the attack, Rowan's call | 1:10 | `Opening.tsx`, `Summoning.tsx` | Done |
-| 2 | Home: game night, the card she can't read, the chime, the door | 1:04 | `RealWorld.tsx` | AI shots to make (`docs/AI-SHOTS.md`); the card close-up is drawn |
+| 2 | Home: game night, the card with the swimming letters, the chime, the door | 1:04 | `RealWorld.tsx` | AI shots to make (`docs/AI-SHOTS.md`); the card close-up is drawn |
 | 3 | Arrival: falling, waking 8-bit, Dyslexi, the status window | 0:53 | `Arrival.tsx` (`RealmArrival-2`) | Done; one line to re-record |
 | 4 | The village: townsfolk, Rowan, the quest | 1:00 | `Village.tsx` (`RealmVillage-3`) | Done; two lines to re-record |
 | 5–6 | The first trial (the lanterns), light | 1:12 | `Trial.tsx` (`RealmTrial-4`) | Built; lines to record |
@@ -170,14 +171,16 @@ The Rhyme Time house. No game screen: the trial happens in the world.
   knocked down.
 - Dyslexi leaps in front of Hero: *"Back off, you overgrown nightlight!"* The
   Wizard laughs, and a cage of **jumbled letters** snaps shut around her.
-- He leans close to Hero, quietly, the worst thing he could know: *"Words are
-  hard, aren't they? You couldn't even read a little card."* He vanishes with
-  Dyslexi in a swirl of letters, toward the tower on the horizon.
+- He leans close to Hero, quietly, and tries to make her give up: *"Why fight
+  for words, child? Give up. Go home."* He vanishes with Dyslexi in a swirl of
+  letters, toward the tower on the horizon. (He never mocks how she reads: his
+  weapon is getting her to quit, and that's exactly what Rowan answers.)
 
 ### 8 · The lowest point (0:30). New
 
 - Grey drizzle. Hero sits on the path. She takes the 8-bit card out of her
-  pocket; the letters swim. *"He's right. I can't even read this."*
+  pocket; the letters swim. *"The letters won't stay still… Maybe I should
+  just go home."*
 - Rowan, hurt, limps over and sits beside her. *"His spells are made of
   words, child. And a word can always be read, if you don't give up on it."*
   He taps the card. *"Not fast. Not first. Just… one word at a time."*
@@ -197,8 +200,8 @@ The Rhyme Time house. No game screen: the trial happens in the world.
   swirling stolen words. The Wizard turns: *"You came. How very brave. How
   very foolish."*
 - He hurls the storm: hundreds of letters fly at her and swirl around her,
-  the **same swimming letters as the card at home**. She shrinks. The sound
-  drops out.
+  the **same swimming letters as the card at home**. She shrinks: *"It's too
+  much… too fast…"* The sound drops out.
 - Close on her face. Breath. Rowan's voice, quietly: *"One word at a time."*
 - The cage's lock is a word. She points at the first letter. **Say it with
   Hero**, slowly, each letter lighting gold as she says it: **"F… r… ee…
@@ -266,7 +269,7 @@ scene's file; record against them, then add each take like the Village's
 
 **Dark Wizard**
 - "Well, well. Rowan's little helper."
-- "Words are hard, aren't they? You couldn't even read a little card."
+- "Why fight for words, child? Give up. Go home."
 - "You came. How very brave. How very foolish."
 - "This isn't over, reader!"
 - "…Reader." *(sting)*
@@ -281,8 +284,8 @@ scene's file; record against them, then add each take like the Village's
 
 **Hero's on-screen lines** (text, no recording): "Dyslexi! Where did you go?",
 "Oops...", "HAT!", "Night... kite...", "L... igh... t... LIGHT!", "I... I
-actually did it!", "DYSLEXI!", "He's right. I can't even read this.", "One word
-at a time.", "Nep... o? Nepo?", "O... p... e... n... OPEN!", "I... I can't...",
+actually did it!", "DYSLEXI!", "The letters won't stay still... Maybe I should just go home.", "One word
+at a time.", "Nep... o? Nepo?", "O... p... e... n... OPEN!", "It's too much... too fast...",
 "F... r... ee... FREE!", "Of course I did.", "I just read one word at a time.",
 "Try and stop me."
 

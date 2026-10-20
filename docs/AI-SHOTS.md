@@ -3,9 +3,10 @@
 The real-world scenes are AI-generated video (story in `docs/SEASON-1.md`):
 
 - **The pilot, real life** (about 1:10, right after the Wizard's story): a
-  reading lesson. Hero is asked to read aloud and can't. A quiet boy at the
-  back who struggles too watches her. A chime only she hears (and, at the
-  back, so does he). The corridor, the storeroom door, the light.
+  reading lesson. Hero is asked to read aloud and the letters swim. A quiet
+  boy at the back who finds reading hard too watches her. A chime only she
+  hears (and, at the back, so does he). The corridor, the storeroom door, the
+  light.
 - **Episode 6, home again** (about 25s, near the end of the season): back in
   the same classroom, she reads the page aloud.
 
@@ -107,7 +108,7 @@ each slot so there's room to trim.
 
 The page close, its letters swimming. Remotion draws the whole shot.
 
-### c03: She can't (6s)
+### c03: She tries (6s)
 > Medium close-up of Hero looking down at her book, lips parted, trying. A
 > short snigger from a desk nearby (that pupil out of focus). The teacher
 > gently moves on to someone else. Hero's cheeks colour and she sinks a little

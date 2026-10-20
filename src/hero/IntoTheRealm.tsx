@@ -12,8 +12,8 @@ import { Village } from "./Village";
 
 // Season 1, Episode 1: the pilot (docs/SEASON-1.md). The Wizard's story: long
 // ago, Elder Rowan spends his last spell calling for help against him. Then
-// real life: in a reading lesson Hero can't read aloud, and a quiet boy at
-// the back who struggles too watches her. She hears the call (and, at the
+// real life: in a reading lesson Hero is asked to read aloud and the letters
+// swim, and a quiet boy at the back who finds reading hard too watches her. She hears the call (and, at the
 // back, so does he), steps through a door and wakes up 8-bit in the realm.
 // Dyslexi, the grey village, Rowan, and her first game: she wins it, and the
 // lamps relight. Then, far off at the top of his tower, the Wizard watches,

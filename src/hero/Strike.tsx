@@ -21,8 +21,8 @@ import { TRIAL_FRAMES } from "./Trial";
 // glides up the path, tears the word LIGHT back out of the air, and the lamps
 // die and the townsfolk freeze. Rowan charges him and is knocked down;
 // Dyslexi leaps in front of Hero and is caught in a cage of jumbled letters.
-// He leans in close, says the cruellest thing he could know, and vanishes
-// with her toward his tower. Then rain. Hero sits on the path with the card
+// He leans in close, tells her to give up and go home, and vanishes with
+// her toward his tower. Then rain. Hero sits on the path with the card
 // she brought from home, its letters swimming, and Rowan limps over to sit
 // with her: one word at a time. She looks up at the tower, stands, and goes.
 //
@@ -64,9 +64,9 @@ const LINES: Line[] = [
   { from: 212, dur: 112, who: "wizard", text: "Well, well. Rowan's little helper." },
   { from: CHARGE.from + 4, dur: 60, who: "rowan", text: "Leave her alone!" },
   { from: LEAP.to, dur: 96, who: "dyslexi", text: "Back off, you overgrown nightlight!" },
-  { from: LEAN.to, dur: 156, who: "wizard", text: "Words are hard, aren't they? You couldn't even read a little card." },
+  { from: LEAN.to, dur: 156, who: "wizard", text: "Why fight for words, child? Give up. Go home." },
   { from: VANISH + 6, dur: 54, who: "hero", text: "DYSLEXI!" },
-  { from: 1186, dur: 110, who: "hero", text: "He's right. I can't even read this." },
+  { from: 1186, dur: 150, who: "hero", text: "The letters won't stay still... Maybe I should just go home." },
   { from: 1390, dur: 196, who: "rowan", text: "His spells are made of words, child. And a word can always be read, if you don't give up on it." },
   { from: 1596, dur: 132, who: "rowan", text: "Not fast. Not first. Just... one word at a time." },
   { from: 1810, dur: 90, who: "hero", text: "One word at a time." },

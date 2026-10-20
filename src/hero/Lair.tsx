@@ -15,7 +15,7 @@ import { villageActors } from "./Village";
 // The pilot's ending (docs/SEASON-1.md): suspense. Far away, at the top of
 // his tower, the Dark Wizard watches Hero's first win in his orb. A voice in
 // the shadows says it knows her. A hooded figure steps into the torchlight:
-// a boy from her own class, the quiet one at the back who struggles to read
+// a boy from her own class, the quiet one at the back who finds reading hard
 // too and heard the chime at the same moment she did. The Wizard got to him
 // first. The hood comes down; a flash of the classroom; "my apprentice".
 // To be continued.
@@ -44,8 +44,8 @@ const LINES: Line[] = [
   { from: 76, dur: 120, who: "wizard", text: "So. Rowan found himself a reader." },
   { from: VOICE, dur: 64, who: "boy", text: "...I know her." },
   { from: 306, dur: 110, who: "wizard", text: "Of course you do. She sits in your class." },
-  { from: 430, dur: 120, who: "boy", text: "She can't read either. Everyone laughed." },
-  { from: 612, dur: 112, who: "wizard", text: "Then she won't last long. Not like you... my apprentice." },
+  { from: 430, dur: 120, who: "boy", text: "She's just like me. The letters swim for her too." },
+  { from: 612, dur: 112, who: "wizard", text: "Then watch her closely... my apprentice." },
 ];
 const SPEAKER: Record<Who, string> = { wizard: "Dark Wizard", boy: "???" };
 const TAG: Record<Who, string> = { wizard: "#ff6b78", boy: "#c9a8ff" };
