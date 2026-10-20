@@ -16,6 +16,7 @@ import { Strike, STRIKE_FRAMES } from "./hero/Strike";
 import { Tower, TOWER_FRAMES } from "./hero/Tower";
 import { Home, HOME_FRAMES } from "./hero/Home";
 import { Lair, LAIR_FRAMES } from "./hero/Lair";
+import { Credits, CREDITS_FRAMES } from "./hero/Credits";
 
 export const Root: React.FC = () => (
   <>
@@ -29,6 +30,8 @@ export const Root: React.FC = () => (
     <Composition id="RealmTrial-4" component={Trial} durationInFrames={TRIAL_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
     {/* The pilot's ending: the Wizard and his apprentice. */}
     <Composition id="RealmLair-5" component={Lair} durationInFrames={LAIR_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
+    {/* The pilot's end credits. */}
+    <Composition id="RealmCredits-6" component={Credits} durationInFrames={CREDITS_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
     {/* Built for later episodes (docs/SEASON-1.md). */}
     <Composition id="Ep2-Taken" component={Strike} durationInFrames={STRIKE_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
     <Composition id="Ep5-Tower" component={Tower} durationInFrames={TOWER_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />

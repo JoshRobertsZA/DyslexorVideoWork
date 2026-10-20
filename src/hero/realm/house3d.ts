@@ -19,8 +19,9 @@ const W = 60 * HS; // width (x)
 const H = 25 * HS; // wall height
 const G = 30 * HS; // gable height above the walls
 const D = 52 * HS; // depth (y), front to back
-const OVX = 5; // roof overhang past the side walls
-const OVY = 4; // roof overhang past the front and back
+const OVX = 7; // roof overhang past the side walls
+const OVY = 9; // roof overhang past the front and back
+const T = 7; // the roof's thickness, so its edges read as chunky tiled boards
 const Z0 = H + G; // ridge height
 const K = G / (W / 2); // roof slope
 const SLOPE = Math.sqrt(1 + K * K);
@@ -32,6 +33,9 @@ const rgba = (r: number, g: number, b: number) => (255 << 24) | (b << 16) | (g <
 const RIDGE = rgba(0xe4, 0x7a, 0x40);
 const EAVE = rgba(0x46, 0x12, 0x12);
 const CAP = rgba(0x3a, 0x34, 0x3c);
+// The roof's edge boards, from the sprite's tiles (and their dark outline).
+const FASCIA = rgba(0xc8, 0x5c, 0x30);
+const FASCIA_LIT = rgba(0xdc, 0x74, 0x3c);
 
 const texCache = new Map<HTMLImageElement, Tex>();
 export const texOf = (img: HTMLImageElement): Tex => {
@@ -219,6 +223,40 @@ export const drawHouse = (
         col = off < 1.4 ? RIDGE : edge ? EAVE : wrapTex(tex.roof, (y - (B - OVY)) / HS, run / HS);
         const under = cam.eye < Z0 - side * (cam.x - hx) * K;
         shade = (side < 0 ? 1.06 : 0.8) * (under && (cam.x - hx) * side < W / 2 ? 0.55 : 1);
+      }
+      // The roof's thickness: its front and back edges (an upside-down V of
+      // tiled board framing each gable, with the ridge's round end at the
+      // top) and its side eaves.
+      for (const end of [1, -1]) {
+        const ey = end > 0 ? F + OVY : B - OVY;
+        if (end > 0 ? !(cam.y > ey && dy < 0) : !(cam.y < ey && dy > 0)) continue;
+        const t = (ey - cam.y) / dy;
+        if (t <= 0.5 || t >= best) continue;
+        const x = cam.x + t * dx;
+        const z = cam.eye + t * dz;
+        const ax = Math.abs(x - hx);
+        if (ax > W / 2 + OVX) continue;
+        const zr = Z0 - ax * K;
+        // The ridge's round end, a little proud of the boards.
+        const cap = Math.hypot(x - hx, z - (Z0 - 1.5)) < 3.4;
+        if (!cap && (z > zr + 0.3 || z < zr - T)) continue;
+        best = t;
+        const outline = cap ? Math.hypot(x - hx, z - (Z0 - 1.5)) > 2.6 : z > zr - 0.9 || z < zr - T + 1 || ax > W / 2 + OVX - 1;
+        col = outline ? EAVE : cap ? RIDGE : z > zr - 2.4 ? FASCIA_LIT : FASCIA;
+        shade = end > 0 ? 1 : 0.72;
+      }
+      for (const side of [-1, 1]) {
+        const ex = hx + side * (W / 2 + OVX);
+        if (side < 0 ? !(cam.x < ex && dx > 0) : !(cam.x > ex && dx < 0)) continue;
+        const t = (ex - cam.x) / dx;
+        if (t <= 0.5 || t >= best) continue;
+        const y = cam.y + t * dy;
+        const z = cam.eye + t * dz;
+        const zr = Z0 - (W / 2 + OVX) * K;
+        if (y < B - OVY || y > F + OVY || z > zr + 0.3 || z < zr - T) continue;
+        best = t;
+        col = z > zr - 0.9 || z < zr - T + 1 ? EAVE : FASCIA;
+        shade = side < 0 ? 0.85 : 0.75;
       }
       // The chimney (an upright box).
       {

@@ -251,6 +251,8 @@ export const Pov: React.FC<PovProps> = ({ cam: camIn, actors = [], hands = [], s
     const ringAt = (wx: number, wy: number) => {
       for (const h of HOUSES) {
         const g = glow[h.id] ?? 0.35;
+        // A ring switched off is gone, not just untinted.
+        if (g <= 0) continue;
         const dd = Math.hypot(wx - h.x, (wy - RING_Y) * 1.0);
         if (dd > RING_R - 3 && dd < RING_R + 1) return { color: h.accent, g };
         if (dd < RING_R - 3 && g > 0.5) return { color: h.accent, g: (g - 0.5) * 0.6 };

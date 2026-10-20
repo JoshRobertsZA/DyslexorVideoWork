@@ -6,11 +6,10 @@ import { BODY, C } from "../theme";
 import { ACCENT, HERO_NAME, VILLAGE_FRAMES } from "./config";
 import { linear } from "./parts";
 import { DYSLEXI_COLOR, DyslexiBuddy } from "./hud/Dyslexi";
-import { HudPopup, Popup } from "./hud/Hud";
-import { Cam, Pov, idleCol, toScreen, walkCol } from "./realm/Pov";
+import { Cam, Pov, idleCol, toScreen, towerWindow, walkCol } from "./realm/Pov";
 import { DRAIN, HOUSE_Y, HOUSES, LAMPS, SCORCH } from "./realm/world";
 import { Hand } from "./Tower";
-import { VILLAGE_END, villageActors } from "./Village";
+import { THEME_CARRY, VILLAGE_END, villageActors } from "./Village";
 
 // The pilot's game (docs/SEASON-1.md). First person, straight on from the
 // Village. Hero walks up to the Rhyme Time house with Dyslexi back at her
@@ -50,6 +49,9 @@ const LEAF_Z1 = 18 * HS;
 const DOOR_MID = (DOOR_X0 + DOOR_X1) / 2;
 // The ring in front of the house, and right up at the door.
 const RING = { x: RHYME.x, y: -664 };
+// Where she stops on the way up: back on the path at an angle, so the whole
+// house (roof and all) is in a three-quarter view while Dyslexi talks.
+const STOP = { x: -96, y: -636 };
 // Far enough back to see the whole door, looking down a little at the handle.
 const AT_DOOR = { x: DOOR_MID, y: HOUSE_Y + 40 };
 const AT_DOOR_HORIZON = 64;
@@ -60,7 +62,8 @@ const aimAt = (x: number, y: number, tx: number, ty: number) => Math.atan2(tx - 
 // ---- Beats -------------------------------------------------------------------
 
 const WALK = { from: 40, to: 220 };
-const APPROACH = { from: 460, to: 520 };
+// Up to the door on "Go on, open the door!"
+const APPROACH = { from: 396, to: 496 };
 const OPEN = { from: 540, to: 568 };
 // She steps through the doorway, and the moment she's over the threshold the
 // door teleports her: a flash, and she's in the cockpit seat.
@@ -97,8 +100,8 @@ const touchAt = (r: Round) => r.at + r.reach + 30;
 const endAt = (r: Round) => r.at + r.next;
 const WRONG = ROUNDS[0].at + ROUNDS[0].reachWrong! + 30;
 // "c-AT… h-AT": the matching endings light up as Dyslexi says them.
-const RIME_PROMPT = ROUNDS[0].at + 240;
-const RIME_ANSWER = ROUNDS[0].at + 275;
+const RIME_PROMPT = ROUNDS[0].at + 252;
+const RIME_ANSWER = ROUNDS[0].at + 292;
 
 // The word she won: the stars gather into it, she sounds it out, it bursts.
 const SPELL = 1790 + D;
@@ -113,51 +116,97 @@ const BURST = 2030 + D;
 // The flight home: the stars streak, the dawn comes up, and the ship swoops
 // in low over the village (colour already flooding out from the house) and
 // drops back down the silo through the ring. The bay goes quiet.
-const HOMEWARD = { from: BURST + 20, to: BURST + 66 };
-const DESCENT = { from: HOMEWARD.to, to: HOMEWARD.to + 70 };
-const SHAFT = { from: DESCENT.to, to: DESCENT.to + 40 };
+const HOMEWARD = { from: BURST + 20, to: BURST + 120 };
+const DESCENT = { from: HOMEWARD.to, to: HOMEWARD.to + 170 };
+const SHAFT = { from: DESCENT.to, to: DESCENT.to + 60 };
 const DOCK = SHAFT.to;
 // She climbs out and steps back out of the front door, walks to the top of
 // the path and looks down it as the lamps relight from the nearest to the
 // farthest.
-const BACK = DOCK + 34;
-const OUT = { from: BACK, to: BACK + 50 };
+// A quiet moment in the docked bay before the lights go down.
+const BACK = DOCK + 100;
+// A beat on the doorstep, then a slow walk to the top of the path.
+const DOORSTEP = 36;
+const OUT = { from: BACK, to: BACK + 170 };
 const TOP = { x: 0, y: -648 };
 // The village ending, timed from `AFTER` (the lamps start 20 frames in).
 const AFTER = OUT.to - 10;
-const LAMP_ON = (i: number) => AFTER + 20 + (LAMPS.length - 1 - i) * 12;
-const CHEER = AFTER + 40;
-export const TRIAL_FRAMES = AFTER + 410;
+const LAMP_ON = (i: number) => AFTER + 20 + (LAMPS.length - 1 - i) * 18;
+const CHEER = AFTER + 60;
+// After "One down!" every townsperson turns to Hero and hops, cheering, and
+// they each have their say (Rowan, still hurt, stays put).
+const CELEBRATE = { from: AFTER + 300, to: AFTER + 760 };
+// Then they head back down the path to their places, each at a walk, while
+// Rowan steps up to her: it's her destiny to face the Wizard. Then she turns
+// to the tower.
+const DISPERSE = AFTER + 860;
+const ROWAN_CLOSE = { from: AFTER + 870, to: AFTER + 940, y: -566 };
+const WALK_SPEED = 1.1; // world units a frame, about Rowan's pace in the Village
+// Once the lamps are lit they come up the path and gather round her, in a
+// half-circle a few steps in front of her (she's at the top of the path).
+const GATHER = { from: AFTER + 196, to: AFTER + 292 };
+const CIRCLE: Record<string, { x: number; y: number }> = {
+  fisherman: { x: -82, y: -510 },
+  guard: { x: -44, y: -530 },
+  farmer: { x: -22, y: -518 },
+  merchant: { x: 22, y: -518 },
+  blacksmith: { x: 44, y: -530 },
+  // Rowan, in the middle and a step behind, where she can see him.
+  rowan: { x: 0, y: -500 },
+};
+// The coda, so the episode ends on a hook rather than a cut: as the cheering
+// settles she turns from the path to the horizon, the lens pushing in, and
+// far off the Dark Wizard's tower window lights purple. He felt it. Hold,
+// then fade to black into the Lair, which opens on him watching her in his orb.
+// After "One down!" Dyslexi pops away in a puff of sparkles (cats don't do
+// goodbyes), so Hero faces the tower alone.
+const LEAVE = { from: AFTER + 368, to: AFTER + 384 };
+const TOWER = -0.6;
+const TOWARD_TOWER = Math.PI * 2 + TOWER;
+const TURN = { from: AFTER + 1450, to: AFTER + 1520 };
+const WINDOW_LIT = TURN.to + 16;
+const FADE = { from: WINDOW_LIT + 74, to: WINDOW_LIT + 114 };
+export const TRIAL_FRAMES = FADE.to + 12;
 
-type Line = { from: number; dur: number; who: "dyslexi" | "hero" | "farmer"; text: string; at?: "top"; reveal?: [number, number][] };
+// Dyslexi's lines play their recorded takes (public/voice); `dur` covers the take.
+type Who = "dyslexi" | "hero" | "farmer" | "guard" | "blacksmith" | "fisherman" | "rowan";
+type Line = { from: number; dur: number; who: Who; text: string; at?: "top"; voice?: string; reveal?: [number, number][] };
 const LINES: Line[] = [
-  { from: 80, dur: 70, who: "dyslexi", text: "Psst! Did you miss me?" },
+  { from: 80, dur: 70, who: "dyslexi", text: "Psst! Did you miss me?", voice: "voice/dyslexi-voiceline6.mp3" },
   { from: 152, dur: 56, who: "hero", text: "Dyslexi! Where did you go?" },
-  { from: 210, dur: 72, who: "dyslexi", text: "Cats don't do goodbyes. Come on!" },
-  { from: 304, dur: 112, who: "dyslexi", text: "This is the Rhyme Time house. Go on, open the door!" },
-  { from: 420, dur: 50, who: "hero", text: "...Here goes." },
+  { from: 210, dur: 94, who: "dyslexi", text: "Cats don't do goodbyes. Come on!", voice: "voice/dyslexi-voiceline7.mp3" },
+  { from: 304, dur: 126, who: "dyslexi", text: "This is the Rhyme Time house. Go on, open the door!", voice: "voice/dyslexi-voiceline8.mp3" },
+  { from: 498, dur: 42, who: "hero", text: "...Here goes." },
   { from: BOOT.from + 6, dur: 48, who: "hero", text: "Whoa... where am I?", at: "top" },
-  { from: SHUTTERS.to - 6, dur: 84, who: "dyslexi", text: "Surprise! The house is just the front door." },
-  { from: SHUTTERS.to + 72, dur: 60, who: "hero", text: "There's a SPACESHIP under the house?!", at: "top" },
-  { from: SHUTTERS.to + 136, dur: 52, who: "dyslexi", text: "Hold on to your whiskers!" },
-  { from: ARRIVE.to - 16, dur: 84, who: "dyslexi", text: "Welcome to Rhyme Time!" },
+  { from: SHUTTERS.to - 6, dur: 110, who: "dyslexi", text: "Surprise! The house is just the front door.",
+    // The take said "door" for "house"; public/voice/dyslexi-voiceline9.mp3 has
+    // "house" spliced in from take 8 (the original is in the dialogue folder).
+    voice: "voice/dyslexi-voiceline9.mp3",
+    reveal: [[0, 0], [20, 9], [39, 9], [54, 19], [66, 22], [78, 31], [94, 43]],
+  },
+  { from: SHUTTERS.to + 102, dur: 44, who: "hero", text: "There's a SPACESHIP under the house?!", at: "top" },
+  { from: SHUTTERS.to + 146, dur: 70, who: "dyslexi", text: "Hold on to your whiskers!", voice: "voice/dyslexi-voiceline10.mp3" },
+  { from: ARRIVE.to - 16, dur: 84, who: "dyslexi", text: "Welcome to Rhyme Time!", voice: "voice/dyslexi-voiceline11.mp3" },
   { from: WRONG + 12, dur: 45, who: "hero", text: "Oops...", at: "top" },
   {
     from: ROUNDS[0].at + 200,
     dur: 120,
     who: "dyslexi",
     text: "Listen to the end. C-at... h-at!",
+    voice: "voice/dyslexi-voiceline12.mp3",
+    // Typed with the take: "Listen to the end." / "C-at..." / "h-at!"
     reveal: [
       [0, 0],
-      [24, 18],
-      [40, 22],
-      [70, 22],
-      [80, 28],
+      [35, 18],
+      [46, 18],
+      [77, 26],
+      [89, 26],
+      [105, 32],
     ],
   },
   { from: ROUNDS[0].at + 335, dur: 40, who: "hero", text: "HAT!", at: "top" },
   { from: ROUNDS[1].at + 50, dur: 60, who: "hero", text: "Ball... wall...", at: "top" },
-  { from: endAt(ROUNDS[2]) + 10, dur: 110, who: "dyslexi", text: "See? I told you. I'm a READING cat, I know talent." },
+  { from: endAt(ROUNDS[2]) + 10, dur: 150, who: "dyslexi", text: "See? I told you. I'm a READING cat, I know talent.", voice: "voice/dyslexi-voiceline13.mp3" },
   {
     from: SOUND,
     dur: BURST - SOUND + 10,
@@ -175,17 +224,23 @@ const LINES: Line[] = [
       [137, 22],
     ],
   },
-  { from: HOMEWARD.from + 4, dur: 56, who: "dyslexi", text: "Next stop: home!" },
-  { from: DOCK + 2, dur: 40, who: "dyslexi", text: "Home sweet home." },
+  { from: HOMEWARD.from + 4, dur: 70, who: "dyslexi", text: "Next stop: home!", voice: "voice/dyslexi-voiceline14.mp3" },
+  { from: DOCK + 2, dur: 68, who: "dyslexi", text: "Home sweet home.", voice: "voice/dyslexi-voiceline15.mp3" },
   { from: CHEER + 70, dur: 80, who: "farmer", text: "Light! Real light!" },
-  { from: AFTER + 250, dur: 60, who: "dyslexi", text: "One down!" },
-  { from: AFTER + 314, dur: 80, who: "hero", text: "I... I actually did it!" },
+  { from: AFTER + 300, dur: 60, who: "dyslexi", text: "One down!", voice: "voice/dyslexi-voiceline16.mp3" },
+  // The townsfolk's turn (text only until recorded).
+  { from: AFTER + 380, dur: 80, who: "guard", text: "Three cheers for the Reader!" },
+  { from: AFTER + 466, dur: 92, who: "blacksmith", text: "I knew it! I knew she was the one!" },
+  { from: AFTER + 564, dur: 92, who: "fisherman", text: "Look! Even the fish are jumping!" },
+  // Rowan's lines here are recorded (public/voice/elder-rowan-new1-3, Fish Audio).
+  { from: AFTER + 662, dur: 120, who: "rowan", text: "Well done, child. Well done.", voice: "voice/elder-rowan-new1.mp3", reveal: [[0, 0], [56, 17], [67, 17], [109, 28]] },
+  { from: AFTER + 786, dur: 86, who: "hero", text: "I... I actually did it!" },
+  { from: AFTER + 950, dur: 240, who: "rowan", text: "You brought the light back, Hero. I haven't seen this village smile in a long time.", voice: "voice/elder-rowan-new2.mp3", reveal: [[0, 0], [49, 27], [62, 27], [74, 33], [103, 33], [172, 67], [183, 67], [226, 83]] },
+  { from: AFTER + 1200, dur: 232, who: "rowan", text: "My call reached you for a reason, Hero. It's your destiny to face the Dark Wizard.", voice: "voice/elder-rowan-new3.mp3", reveal: [[0, 0], [72, 33], [80, 33], [89, 39], [121, 39], [216, 82]] },
 ];
-const SPEAKER = { dyslexi: "Dyslexi", hero: HERO_NAME, farmer: "Farmer" };
-const TAG = { dyslexi: DYSLEXI_COLOR, hero: C.lilac, farmer: "#9fd47a" };
+const SPEAKER: Record<Who, string> = { dyslexi: "Dyslexi", hero: HERO_NAME, farmer: "Farmer", guard: "Guard", blacksmith: "Blacksmith", fisherman: "Fisherman", rowan: "Elder Rowan" };
+const TAG: Record<Who, string> = { dyslexi: DYSLEXI_COLOR, hero: C.lilac, farmer: "#9fd47a", guard: "#9fb4ff", blacksmith: C.peach, fisherman: "#7fd4e8", rowan: C.gold };
 
-// The first word back, counted, as the village cheers.
-const RESTORED: Popup = { at: AFTER + 190, kind: "xp", title: "+1 word restored", sub: "1 / 5,000", dur: 110 };
 
 // ---- The village: the walk, the door, the pull ------------------------------------
 
@@ -197,9 +252,8 @@ const ROUTE: [number, number, number][] = [
   [WALK.from, VILLAGE_END.x, VILLAGE_END.y],
   [WALK.from + 30, 6, -470],
   [WALK.from + 98, 4, -590],
-  [WALK.from + 128, -40, -645],
-  [WALK.to, RING.x, RING.y],
-  [APPROACH.from, RING.x, RING.y],
+  [WALK.to, STOP.x, STOP.y],
+  [APPROACH.from, STOP.x, STOP.y],
   [APPROACH.to, AT_DOOR.x, AT_DOOR.y],
   [STEP.from, AT_DOOR.x, AT_DOOR.y],
   [STEP.to, INTO.x, INTO.y],
@@ -221,7 +275,7 @@ const launchCam = (f: number): Cam => {
 // tipping down into it.
 const descentCam = (f: number): Cam => {
   const k = interpolate(f, [DESCENT.from, DESCENT.to], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
-  const dive = interpolate(f, [DESCENT.to - 16, DESCENT.to], [0, 1], { ...clamp, easing: Easing.in(Easing.quad) });
+  const dive = interpolate(f, [DESCENT.to - 24, DESCENT.to], [0, 1], { ...clamp, easing: Easing.in(Easing.quad) });
   return {
     x: RING.x + Math.sin(f / 9) * 6 * (1 - k),
     y: RING.y + 560 * (1 - k) + 30,
@@ -234,8 +288,8 @@ const descentCam = (f: number): Cam => {
 // Stepping back out of the front door and up to the top of the path, turning
 // to look down it.
 const outCam = (f: number): Cam => {
-  const k = interpolate(f, [OUT.from, OUT.to], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
-  const walking = f > OUT.from && f < OUT.to;
+  const k = interpolate(f, [OUT.from + DOORSTEP, OUT.to], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
+  const walking = f > OUT.from + DOORSTEP && f < OUT.to;
   const step = walking ? Math.sin((f / 30) * Math.PI * 4) : 0;
   // The way to the path, kept on the near side of π so she turns the short way.
   const aim = aimAt(AT_DOOR.x, AT_DOOR.y, TOP.x, TOP.y);
@@ -243,9 +297,17 @@ const outCam = (f: number): Cam => {
   return {
     x: AT_DOOR.x + (TOP.x - AT_DOOR.x) * k,
     y: AT_DOOR.y + (TOP.y - AT_DOOR.y) * k,
-    heading: interpolate(k, [0, 0.3, 1], [Math.PI, toPath, Math.PI], clamp),
+    // Out of the door, then she turns to where she's going and faces it the
+    // whole way up, turning to look down the path only as she arrives.
+    heading:
+      f >= TURN.from
+        ? interpolate(f, [TURN.from, TURN.to], [Math.PI, TOWARD_TOWER], { ...clamp, easing: Easing.inOut(Easing.cubic) })
+        : f < OUT.from + DOORSTEP + 30
+          ? interpolate(f, [OUT.from + DOORSTEP - 6, OUT.from + DOORSTEP + 30], [Math.PI, toPath], { ...clamp, easing: Easing.inOut(Easing.sin) })
+          : interpolate(k, [0.78, 1], [toPath, Math.PI], { ...clamp, easing: Easing.inOut(Easing.sin) }),
     eye: 26 + step * 0.7,
-    horizon: 120 + step * 2,
+    horizon: 120 + step * 2 + interpolate(f, [TURN.from + 20, TURN.to + 20], [0, 60], { ...clamp, easing: Easing.inOut(Easing.quad) }),
+    focal: interpolate(f, [TURN.from + 20, FADE.to], [457, 780], { ...clamp, easing: Easing.inOut(Easing.quad) }),
   };
 };
 const villageCam = (f: number): Cam => {
@@ -254,8 +316,10 @@ const villageCam = (f: number): Cam => {
   if (f >= LAND) return launchCam(f);
   const x = linear(f, ROUTE.map(([t, px]) => [t, px] as [number, number]));
   const y = linear(f, ROUTE.map(([t, , py]) => [t, py] as [number, number]));
-  const toDoor = f < WALK.to ? aimAt(x, y, DOOR_MID, HOUSE_Y) : f < APPROACH.from ? aimAt(RING.x, RING.y, DOOR_MID, HOUSE_Y) : 0;
-  const heading = f < WALK.from + 20 ? interpolate(f, [0, WALK.from + 20], [VILLAGE_END.heading, toDoor], clamp) : f < APPROACH.to ? interpolate(f, [APPROACH.from, APPROACH.to], [toDoor, 0], clamp) : 0;
+  // Where she looks from the stop; the walk up to the door eases from it.
+  const fromStop = aimAt(STOP.x, STOP.y, DOOR_MID, HOUSE_Y);
+  const toDoor = f < WALK.to ? aimAt(x, y, DOOR_MID, HOUSE_Y) : fromStop;
+  const heading = f < WALK.from + 20 ? interpolate(f, [0, WALK.from + 20], [VILLAGE_END.heading, toDoor], clamp) : f < APPROACH.to ? interpolate(f, [APPROACH.from, APPROACH.to], [toDoor, 0], { ...clamp, easing: Easing.inOut(Easing.sin) }) : 0;
   const walking = (f > WALK.from && f < WALK.to) || (f > APPROACH.from && f < APPROACH.to);
   const step = walking ? Math.sin((f / 30) * Math.PI * 4) : 0;
   // A wobble as she steps over the threshold, and a long lens punching into
@@ -766,7 +830,7 @@ const Cockpit: React.FC<{ f: number }> = ({ f }) => {
   const shutters = interpolate(f, [SHUTTERS.from, SHUTTERS.to], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
   // Dim when she arrives, the lights coming on; and dimming again once the
   // ship is docked, as she climbs out.
-  const dark = Math.max(interpolate(f, [LAND, BOOT.from + 6, BOOT.to], [0.85, 0.6, 0], clamp), interpolate(f, [DOCK + 12, BACK], [0, 1], clamp));
+  const dark = Math.max(interpolate(f, [LAND, BOOT.from + 6, BOOT.to], [0.85, 0.6, 0], clamp), interpolate(f, [DOCK + 64, BACK], [0, 1], clamp));
   const booted = (i: number) => f >= BOOT.from + i * 1.3;
   const rumble = interpolate(f, [LAUNCH.from, LAUNCH.from + 20, LAUNCH.to, SPACE + 30], [0, 1, 1.4, 0], clamp) + interpolate(f, [HOMEWARD.from, DESCENT.from, SHAFT.to, DOCK + 8], [0, 0.6, 1, 0], clamp);
   const landing = interpolate(f, [DOCK, DOCK + 4, DOCK + 14], [0, 0.8, 0], clamp);
@@ -896,7 +960,63 @@ const LampGlows: React.FC<{ f: number; cam: Cam }> = ({ f, cam }) => (
 );
 
 // Colour floods out from the house as the ship comes home with the word, and stays.
-const bloomR = (f: number) => interpolate(f, [DESCENT.from, DESCENT.from + 120], [0, 180], { ...clamp, easing: Easing.out(Easing.cubic) });
+const bloomR = (f: number) => interpolate(f, [DESCENT.from, DESCENT.to], [0, 180], { ...clamp, easing: Easing.out(Easing.cubic) });
+
+// ---- The celebration ---------------------------------------------------------------
+
+// Little hops, a beat apart per person, easing in and out with the celebration.
+const hop = (f: number, who: string) => {
+  const phase = (who.charCodeAt(0) * 7 + who.length * 5) % 18;
+  const t = ((f - CELEBRATE.from + phase) % 18) / 18;
+  const k = interpolate(f, [CELEBRATE.from, CELEBRATE.from + 12, CELEBRATE.to - 20, CELEBRATE.to], [0, 1, 1, 0], clamp);
+  return Math.sin(t * Math.PI) * 7 * k;
+};
+
+// ---- Dyslexi leaves ---------------------------------------------------------------
+
+const LeavePuff: React.FC<{ f: number; x: number; y: number }> = ({ f, x, y }) => {
+  const t = f - (LEAVE.to - 4);
+  if (t < 0 || t > 24) return null;
+  const k = t / 24;
+  return (
+    <>
+      {Array.from({ length: 10 }, (_, i) => {
+        const a = (i / 10) * Math.PI * 2 + random(`puff-${i}`) * 0.5;
+        const r = 20 + 110 * Easing.out(Easing.quad)(k) * (0.7 + 0.5 * random(`puffr-${i}`));
+        const size = 12 * (1 - k) + 4;
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: x + Math.cos(a) * r - size / 2,
+              top: y + Math.sin(a) * r - size / 2 - 30 * k,
+              width: size,
+              height: size,
+              background: i % 3 === 0 ? DYSLEXI_COLOR : ACCENT.mint,
+              opacity: 1 - k,
+              boxShadow: `0 0 12px ${ACCENT.mint}`,
+            }}
+          />
+        );
+      })}
+    </>
+  );
+};
+
+// ---- The coda: the tower window ------------------------------------------------------
+
+const TowerLight: React.FC<{ f: number; cam: Cam }> = ({ f, cam }) => {
+  const tw = towerWindow(cam, TOWER);
+  const lamp = interpolate(f, [WINDOW_LIT, WINDOW_LIT + 6, WINDOW_LIT + 14, WINDOW_LIT + 40], [0, 1, 0.75, 0.9], clamp) * (0.9 + 0.1 * Math.sin(f / 5));
+  if (!tw || lamp <= 0) return null;
+  return (
+    <div style={{ position: "absolute", left: tw.x, top: tw.y, opacity: lamp, pointerEvents: "none" }}>
+      <div style={{ position: "absolute", left: -tw.px * 14, top: -tw.px * 14, width: tw.px * 28, height: tw.px * 28, borderRadius: "50%", background: "radial-gradient(#c77dffaa, #7b2cbf33 45%, transparent 70%)" }} />
+      <div style={{ position: "absolute", left: -tw.px * 1.5, top: -tw.px * 2, width: tw.px * 3, height: tw.px * 4, background: "#e6b3ff", boxShadow: `0 0 ${tw.px * 3}px #c77dff` }} />
+    </div>
+  );
+};
 
 // ---- Sound -----------------------------------------------------------------------
 
@@ -908,6 +1028,18 @@ const TrialSound: React.FC = () => {
   );
   return (
     <>
+      {/* Rowan's theme carries on from the Village under the walk to the
+          house, dipping under Dyslexi, and fades as the door opens. */}
+      <Sequence durationInFrames={OPEN.from + 30} name="♪ Rowan's theme">
+        <Audio
+          src={staticFile("music/rebirth-background-music.mp3")}
+          trimBefore={THEME_CARRY}
+          volume={(t) =>
+            interpolate(t, [0, APPROACH.from, OPEN.from + 30], [1, 0.85, 0], clamp) *
+            Math.min(1, ...LINES.filter((l) => l.voice && l.from < OPEN.from).map((l) => interpolate(t, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.8, 0.8, 1], clamp)))
+          }
+        />
+      </Sequence>
       <Sequence durationInFrames={TELEPORT.from + 6} name="🔊 morning wind">
         <Audio src={staticFile("sfx/ambience.mp3")} loop volume={(t) => interpolate(t, [0, STEP.from, TELEPORT.from + 6], [0.2, 0.2, 0.05], clamp)} />
       </Sequence>
@@ -917,9 +1049,6 @@ const TrialSound: React.FC = () => {
       {sfx("teleport", TELEPORT.from, 0.55, 60)}
       {/* The ship waking up */}
       {sfx("ui-boot", BOOT.from, 0.4, 40)}
-      <Sequence from={LAND} durationInFrames={LAUNCH.from - LAND + 20} name="♪ mystery drone">
-        <Audio src={staticFile("music/mystery-drone.mp3")} volume={(t) => interpolate(t, [0, 30, LAUNCH.from - LAND, LAUNCH.from - LAND + 20], [0, 0.25, 0.25, 0], clamp)} />
-      </Sequence>
       {sfx("staff-slam", BAY_OPEN.from, 0.3, 40)}
       <Sequence from={BREAK} durationInFrames={LAUNCH.to - BREAK} name="🔊 morning wind">
         <Audio src={staticFile("sfx/ambience.mp3")} loop volume={0.12} />
@@ -933,9 +1062,18 @@ const TrialSound: React.FC = () => {
       </Sequence>
       {sfx("shockwave", BREAK, 0.45, 60)}
       {sfx("teleport", SPACE - 10, 0.5, 60)}
-      {/* Rhyme Time's own music, from the moment she lands in space */}
-      <Sequence from={SPACE} durationInFrames={BURST - SPACE + 20} name="♪ rhyme time">
-        <Audio src={staticFile("music/rhymetime_music.mp3")} volume={(t) => interpolate(t, [0, 30, BURST - SPACE - 10, BURST - SPACE + 20], [0, 0.4, 0.4, 0], clamp)} />
+      {/* Rhyme Time's own music: it starts softly as she's teleported through
+          the door, filling the cockpit and the launch, and comes up full as she
+          reaches space. */}
+      <Sequence from={TELEPORT.from} durationInFrames={BURST - TELEPORT.from + 20} name="♪ rhyme time">
+        <Audio
+          src={staticFile("music/rhymetime_music.mp3")}
+          volume={(t) =>
+            interpolate(t, [0, 24, SPACE - TELEPORT.from - 10, SPACE - TELEPORT.from + 30, BURST - TELEPORT.from - 10, BURST - TELEPORT.from + 20], [0, 0.1, 0.1, 0.55, 0.55, 0], clamp) *
+            // ...dipping under Dyslexi once it's up, so she's still clear.
+            Math.min(1, ...LINES.filter((l) => l.voice && l.from >= SPACE).map((l) => interpolate(t + TELEPORT.from, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.55, 0.55, 1], clamp)))
+          }
+        />
       </Sequence>
       {ROUNDS.map((r) => sfx("ui-boot", r.at, 0.25, 30))}
       {sfx("shield-hit", WRONG, 0.35, 30)}
@@ -954,15 +1092,41 @@ const TrialSound: React.FC = () => {
       </Sequence>
       {sfx("jump-whoosh", SHAFT.from - 6, 0.45, 40)}
       {sfx("staff-slam", DOCK, 0.4, 40)}
-      {/* Back in the village: the realm theme swells as the lamps relight */}
-      <Sequence from={BACK} durationInFrames={TRIAL_FRAMES - BACK} name="♪ realm theme">
-        <Audio src={staticFile("music/background-music.mp3")} volume={(t) => interpolate(t, [0, 20, TRIAL_FRAMES - BACK - 40, TRIAL_FRAMES - BACK], [0, 0.4, 0.4, 0.25], clamp)} />
+      {/* The win: the realm theme comes in on the burst, carries the flight
+          home over the colour flooding back, and swells as the lamps relight
+          and everyone cheers. It fades under the turn to the tower. */}
+      <Sequence from={BURST} durationInFrames={TRIAL_FRAMES - BURST} name="♪ realm theme">
+        {/* The realm's own theme (from the app), from 2:00 in. It creeps in
+            under the flight home and the dark of the silo, held back, and only
+            blooms once she steps out of the door and the lamps relight. */}
+        <Audio
+          src={staticFile("music/realm-theme.mp3")}
+          trimBefore={120 * 30}
+          volume={(t) =>
+            t < BACK - BURST
+              ? interpolate(t, [0, DOCK - BURST], [0, 0.14], { ...clamp, easing: Easing.in(Easing.quad) })
+              : interpolate(t, [BACK - BURST, CHEER - BURST, CELEBRATE.to - BURST, DISPERSE + 60 - BURST, TURN.from - BURST, TURN.to + 10 - BURST], [0.14, 0.6, 0.6, 0.35, 0.35, 0], { ...clamp, easing: Easing.inOut(Easing.cubic) }) *
+                // ...dipping under Rowan (and Dyslexi) back in the village.
+                Math.min(1, ...LINES.filter((l) => l.voice && l.from >= BACK).map((l) => interpolate(t + BURST, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.55, 0.55, 1], clamp)))
+          }
+        />
       </Sequence>
       <Sequence from={BACK} durationInFrames={TRIAL_FRAMES - BACK} name="🔊 morning wind">
         <Audio src={staticFile("sfx/ambience.mp3")} loop volume={0.2} />
       </Sequence>
       {LAMPS.map((_, i) => sfx("ui-blip", LAMP_ON(i), 0.25, 12))}
-      {sfx("ui-blip", RESTORED.at, 0.5, 15)}
+      {sfx("jump-whoosh", LEAVE.from, 0.3, 30)}
+      {sfx("ui-blip", LEAVE.to - 4, 0.45, 15)}
+      {/* The coda: the drone creeps in under the turn, a far-off rumble as the window lights */}
+      <Sequence from={TURN.from} durationInFrames={TRIAL_FRAMES - TURN.from} name="♪ mystery drone">
+        <Audio src={staticFile("music/mystery-drone.mp3")} volume={(t) => interpolate(t, [0, 50, FADE.from - TURN.from, TRIAL_FRAMES - TURN.from], [0, 0.3, 0.3, 0], clamp)} />
+      </Sequence>
+      {sfx("thunder-strike", WINDOW_LIT, 0.18, 90)}
+      {LINES.filter((l) => l.voice).map((l) => (
+        <Sequence key={`voice-${l.from}`} from={l.from} durationInFrames={l.dur + 15} name="🗣 voice">
+          <Audio src={staticFile(l.voice!)} volume={1} />
+        </Sequence>
+      ))}
     </>
   );
 };
@@ -978,7 +1142,9 @@ export const Trial: React.FC = () => {
   // The launch bay, before the climb and after the drop home.
   const bay = f >= SHUTTERS.from - 1 && f < BREAK ? { rise: interpolate(f, [RISE.from, RISE.to], [0, 2600], { ...clamp, easing: Easing.in(Easing.cubic) }), light: interpolate(f, [BAY_OPEN.from, BAY_OPEN.to], [0, 1], clamp) } : f >= SHAFT.from && f < BACK ? { rise: interpolate(f, [SHAFT.from, DOCK], [2600, 0], { ...clamp, easing: Easing.out(Easing.cubic) }), light: interpolate(f, [SHAFT.from, DOCK], [1, 0], clamp) } : null;
   const cam = villageCam(f);
-  const ring = interpolate(f, [WALK.to - 30, WALK.to, OPEN.from, BURST], [0.35, 1, 1, 0.8], clamp) * (0.9 + 0.1 * Math.sin(f / 4));
+  // No ring on the walk to the house: it only shows once she's in the ship,
+  // as the top of the silo it launches out of.
+  const ring = f < LAND ? 0 : interpolate(f, [OPEN.from, BURST], [1, 0.8], clamp) * (0.9 + 0.1 * Math.sin(f / 4));
   const dysIn = interpolate(f, [LINES[0].from - 6, LINES[0].from + 8], [0, 1], clamp);
   const talking = LINES.some((l) => l.who === "dyslexi" && f >= l.from && f < l.from + l.dur - 16);
   // Dyslexi follows her in through the door, tumbles down the chute beside
@@ -989,15 +1155,51 @@ export const Trial: React.FC = () => {
   const dysX = seated ? 1660 : 1640 - 700 * pulled;
   const dysY = seated ? 760 : 560 - 40 * pulled + Math.sin(f / 2) * 10 * pulled;
   const dysScale = seated ? 5 : 6 * (1 - 0.7 * pulled);
-  const dysGone = f >= TELEPORT.from + 4 && f < LAND ? 0 : 1;
-  const cheering = f >= CHEER && f < CHEER + 140;
+  const dysGone = (f >= TELEPORT.from + 4 && f < LAND ? 0 : 1) * interpolate(f, [LEAVE.from, LEAVE.to], [1, 0], clamp);
+  const dysLift = interpolate(f, [LEAVE.from, LEAVE.to], [0, -70], { ...clamp, easing: Easing.in(Easing.quad) });
+  const cheering = f >= CHEER && f < CELEBRATE.to;
+  const celebrating = f >= CELEBRATE.from && f < CELEBRATE.to;
   const aside = interpolate(f, [ROWAN_ASIDE.from, ROWAN_ASIDE.to], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
   const actors = villageActors(VILLAGE_FRAMES + f, (i) => lampLit(i, f)).map((a) =>
-    a.sheet === "rowan"
+    a.sheet === "rowan" && f >= GATHER.from
+      ? (() => {
+          // He comes up slowly behind the others (still hurt), and doesn't hop.
+          const k = interpolate(f, [GATHER.from, GATHER.to + 30], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
+          const from = { x: a.x + ROWAN_ASIDE.x, y: a.y };
+          const close = interpolate(f, [ROWAN_CLOSE.from, ROWAN_CLOSE.to], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
+          const moving = (k > 0 && k < 1) || (close > 0 && close < 1);
+          const x = from.x + (CIRCLE.rowan.x - from.x) * k;
+          const y = from.y + (CIRCLE.rowan.y - from.y) * k + (ROWAN_CLOSE.y - CIRCLE.rowan.y) * close;
+          return { ...a, x, y, row: moving ? 3 : 0, col: moving ? walkCol(f) : idleCol(f), flip: false };
+        })()
+      : a.sheet === "rowan"
       ? { ...a, x: a.x + ROWAN_ASIDE.x * aside, row: aside > 0 && aside < 1 ? 3 : 0, col: aside > 0 && aside < 1 ? walkCol(f) : idleCol(f), flip: false }
-      : cheering && a.sheet !== "lamp"
-        ? { ...a, bubble: true }
-        : a,
+      : a.sheet === "lamp"
+        ? a
+        : f >= CELEBRATE.to && CIRCLE[a.sheet]
+          ? // Back down the path to their places, at a walk (facing away).
+            (() => {
+              const to = CIRCLE[a.sheet];
+              const wait = f < DISPERSE;
+              const dist = Math.hypot(a.x - to.x, a.y - to.y);
+              const k = wait ? 0 : Math.min(1, ((f - DISPERSE) * WALK_SPEED) / dist);
+              const moving = !wait && k < 1;
+              return { ...a, x: to.x + (a.x - to.x) * k, y: to.y + (a.y - to.y) * k, row: wait ? 0 : moving ? 5 : 1, col: moving ? walkCol(f) : idleCol(f), flip: a.flip };
+            })()
+        : f >= GATHER.from && f < CELEBRATE.from && CIRCLE[a.sheet]
+          ? // Walking up to her
+            (() => {
+              const k = interpolate(f, [GATHER.from, GATHER.to], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
+              const to = CIRCLE[a.sheet];
+              const moving = f < GATHER.to;
+              return { ...a, x: a.x + (to.x - a.x) * k, y: a.y + (to.y - a.y) * k, row: moving ? 3 : 0, col: moving ? walkCol(f) : idleCol(f), flip: false, bubble: false };
+            })()
+        : celebrating
+          ? // Facing her (row 0) and hopping, each on their own beat.
+            { ...a, ...(CIRCLE[a.sheet] ?? {}), row: 0, col: idleCol(f), flip: false, bubble: false, lift: hop(f, a.sheet) }
+          : cheering
+            ? { ...a, bubble: true }
+            : a,
   );
   const dialogue = LINES.map((l) => (
     <Dialogue key={l.from} speaker={SPEAKER[l.who]} text={l.text} t={f - l.from} dur={l.dur} color={TAG[l.who]} at={l.at ?? "bottom"} reveal={l.reveal} readable />
@@ -1013,10 +1215,12 @@ export const Trial: React.FC = () => {
           drain={DRAIN}
           scorch={SCORCH}
           glow={{ "rhyme-time": ring }}
+          tower={f >= TURN.from ? TOWER : undefined}
           bloom={{ x: RHYME.x, y: -700, r: bloomR(f), k: bloomR(f) > 0 ? 1 : 0 }}
         >
           {f < LAND && <Doorway f={f} cam={cam} />}
           <LampGlows f={f} cam={cam} />
+          {f >= TURN.from && <TowerLight f={f} cam={cam} />}
           {/* The dark of the doorway swallowing the frame */}
           <AbsoluteFill style={{ background: "#07050e", opacity: f < LAND ? interpolate(f, [STEP.to - 16, STEP.to - 4], [0, 1], clamp) : 0, pointerEvents: "none" }} />
           {/* Climbing out of the dawn into the night sky */}
@@ -1025,8 +1229,11 @@ export const Trial: React.FC = () => {
           <AbsoluteFill style={{ background: DAWN, opacity: f >= BREAK && f < SPACE ? interpolate(f, [BREAK, BREAK + 10], [1, 0], clamp) : f >= DESCENT.from && f < SHAFT.from ? interpolate(f, [DESCENT.from, DESCENT.from + 14], [1, 0], clamp) : 0, pointerEvents: "none" }} />
           {/* Down into the ring */}
           <AbsoluteFill style={{ background: "#16111d", opacity: f >= DESCENT.from && f < SHAFT.from ? interpolate(f, [SHAFT.from - 8, SHAFT.from], [0, 1], clamp) : 0, pointerEvents: "none" }} />
-          {/* Out of the dark of the house, stepping out of the door */}
-          <AbsoluteFill style={{ background: "#000", opacity: f >= BACK ? interpolate(f, [BACK, BACK + 20], [1, 0], clamp) : 0, pointerEvents: "none" }} />
+          {/* Out of the dark of the house: the door opens and the dawn floods in */}
+          <AbsoluteFill style={{ background: C.cream, opacity: f >= BACK ? interpolate(f, [BACK, BACK + 6, BACK + 50], [0, 0.85, 0], { ...clamp, easing: Easing.out(Easing.quad) }) : 0, pointerEvents: "none" }} />
+          <AbsoluteFill style={{ background: "#000", opacity: f >= BACK ? interpolate(f, [BACK, BACK + 8], [1, 0], clamp) : 0, pointerEvents: "none" }} />
+          {/* The coda's fade, into the Lair */}
+          <AbsoluteFill style={{ background: "#000", opacity: interpolate(f, [FADE.from, FADE.to], [0, 1], { ...clamp, easing: Easing.in(Easing.quad) }), pointerEvents: "none" }} />
         </Pov>
       )}
       {bay && <Bay f={f} rise={bay.rise} light={bay.light} />}
@@ -1036,8 +1243,8 @@ export const Trial: React.FC = () => {
       <Screen f={f} />
       {/* The word bursts into light */}
       <AbsoluteFill style={{ background: C.cream, opacity: f >= BURST && f < HOMEWARD.to ? interpolate(f, [BURST, BURST + 4, BURST + 30], [0, 0.9, 0], clamp) : 0, pointerEvents: "none" }} />
-      <DyslexiBuddy f={f} x={dysX} y={dysY} scale={dysScale} appear={dysIn * dysGone} talking={talking} />
-      <HudPopup t={f - RESTORED.at} p={RESTORED} />
+      <DyslexiBuddy f={f} x={dysX} y={dysY + dysLift} scale={dysScale} appear={dysIn * dysGone} talking={talking} />
+      <LeavePuff f={f} x={dysX} y={dysY - 70} />
       {dialogue}
       <TrialSound />
     </AbsoluteFill>

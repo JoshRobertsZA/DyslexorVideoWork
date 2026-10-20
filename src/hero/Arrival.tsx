@@ -8,7 +8,7 @@ import { ACCENT, ARRIVAL_FALL, ARRIVAL_FRAMES, DRONE_IN, HERO_LOOK, HERO_NAME, O
 import { Footage } from "./Footage";
 import { HeroSprite, RealmTitle, track } from "./parts";
 import { villageActors } from "./Village";
-import { BOOT_FRAMES, HudBoot, START_STATS, Stats, STATS_PANEL, StatsFocus, StatsPop, StatsScreen } from "./hud/Hud";
+import { BOOT_FRAMES, HudBoot, START_STATS, Stats, STATS_PANEL, StatsFocus, StatsScreen } from "./hud/Hud";
 import { DYSLEXI_COLOR } from "./hud/Dyslexi";
 import { HandPose } from "./realm/hands";
 import { Cam, LH, Pov } from "./realm/Pov";
@@ -105,7 +105,6 @@ const LINES: Line[] = [
     from: G0,
     dur: 166,
     guide: true,
-    focus: "hero",
     text: "Don't worry, Hero! I'm your guide. You're inside a game world now.",
     voice: "voice/dyslexi-voiceline2.mp3",
     speak: 145,
@@ -175,20 +174,12 @@ const WORDS_LINE = LINES.find((l) => l.focus === "words")!;
 const XP_FILL = XP_LINE.from + 75;
 const XP_FULL = XP_LINE.from + 114;
 const WORD_BACK = WORDS_LINE.from + 68;
-const lineEnd = (l: Line) => l.from + l.dur;
 const demoStats = (f: number): Stats => ({
   ...START_STATS,
   xp: during(f, XP_LINE) ? interpolate(f, [XP_FILL, XP_FULL], [0, START_STATS.xpMax], clamp) : 0,
   level: during(f, XP_LINE) && f >= XP_FULL ? 2 : START_STATS.level,
   words: during(f, WORDS_LINE) && f >= WORD_BACK ? 1 : 0,
 });
-const popIn = (f: number, at: number, l: Line) => interpolate(f, [at, at + 8, lineEnd(l) - 10, lineEnd(l)], [0, 1, 1, 0], clamp);
-const demoPop = (f: number): StatsPop | undefined =>
-  during(f, XP_LINE)
-    ? { on: "xp", text: "LEVEL UP!", k: popIn(f, XP_FULL, XP_LINE) }
-    : during(f, WORDS_LINE)
-      ? { on: "words", text: "+1 WORD", k: popIn(f, WORD_BACK, WORDS_LINE) }
-      : undefined;
 
 // Dyslexi on her perch: she hops up onto the status panel's top-left corner
 // as she introduces herself and sits with her paws over its border, so she
@@ -369,7 +360,6 @@ const Waking: React.FC = () => {
           <StatsScreen
             offsetY={PANEL_OFFSET}
             focus={focusAt(f)}
-            pop={demoPop(f)}
             t={f - STATUS.at}
             dur={STATUS.dur}
             stats={demoStats(f)}
@@ -627,11 +617,13 @@ const Fall: React.FC = () => {
   );
 };
 
-// A low, uneasy drone from the moment she comes round, carried on into the
-// Village. Dips under her lines.
-const droneVolume = (f: number) => {
-  const duck = Math.min(...LINES.map((l) => interpolate(f, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.4, 0.4, 1], clamp)));
-  return interpolate(f, [DRONE_IN, DRONE_IN + 90], [0, 0.5], clamp) * duck;
+// The realm theme, from 0:00, the moment she comes round: it fades in slowly
+// and carries on unbroken into the Village (from DRONE_CARRY frames in),
+// building all the way to Rowan explaining everything. Dips under Dyslexi.
+const themeVolume = (f: number) => {
+  const voiced = [{ from: WELCOME.at, dur: WELCOME.len }, ...LINES.filter((l) => l.voice)];
+  const duck = Math.min(...voiced.map((l) => interpolate(f, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.65, 0.65, 1], clamp)));
+  return interpolate(f, [DRONE_IN, DRONE_IN + 600], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) }) * duck;
 };
 
 export const Arrival: React.FC = () => (
@@ -656,8 +648,8 @@ export const Arrival: React.FC = () => (
     <Sequence from={IMPACT - 1} durationInFrames={60} name="🔊 impact boom">
       <Audio src={staticFile("sfx/staff-slam.mp3")} volume={(t) => interpolate(t, [0, 30, 60], [0.5, 0.5, 0], clamp)} />
     </Sequence>
-    <Sequence from={FALL + DRONE_IN} durationInFrames={WAKE_FRAMES - DRONE_IN} name="♪ mystery">
-      <Audio src={staticFile("music/mystery-drone.mp3")} volume={(t) => droneVolume(t + DRONE_IN)} />
+    <Sequence from={FALL + DRONE_IN} durationInFrames={WAKE_FRAMES - DRONE_IN} name="♪ realm theme">
+      <Audio src={staticFile("music/realm-theme.mp3")} volume={(t) => themeVolume(t + DRONE_IN)} />
     </Sequence>
     <Sequence from={FALL + BOOT} durationInFrames={50} name="🔊 reader detected">
       <Audio src={staticFile("sfx/ui-boot.mp3")} volume={0.45} />

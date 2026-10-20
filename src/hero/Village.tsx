@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Easing, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { Audio } from "@remotion/media";
 import { Dialogue } from "../lore/parts";
 import { BODY, C, PIXEL } from "../theme";
@@ -7,7 +7,7 @@ import { DRONE_CARRY, HERO_NAME, VILLAGE_FRAMES } from "./config";
 import { linear, RealmTitle, track, walking } from "./parts";
 import { Actor, Pov, fishingCol, idleCol, toScreen, walkCol } from "./realm/Pov";
 import { DRAIN, HOUSE_Y, HOUSES, LAMPS, SCORCH, SPOTS } from "./realm/world";
-import { HudPopup, Popup, RIM } from "./hud/Hud";
+import { HudPopup, Popup } from "./hud/Hud";
 
 // Act 4. The morning after the attack. Hero walks the scorched, drained main
 // path past startled townsfolk; the Blacksmith asks if she's the one Rowan
@@ -22,6 +22,10 @@ const RHYME = HOUSES.find((h) => h.id === "rhyme-time")!;
 const MEET_Y = -405;
 const HOUSE_HEADING = Math.atan2(RHYME.x, -(HOUSE_Y - MEET_Y));
 
+// Rowan sets off down the path during the fisherman's line, so he's halfway
+// to her by the time she turns back. Everything from his arrival on is
+// `TIGHTEN` frames earlier than it used to be.
+const TIGHTEN = 160;
 // A slower walk than before, with room between the townsfolk's lines. She
 // stops to let Rowan come down, then steps up to meet him as he arrives.
 const posY = (f: number) =>
@@ -31,8 +35,8 @@ const posY = (f: number) =>
     [390, -230],
     [585, -330],
     [690, -380],
-    [862, -380],
-    [900, MEET_Y],
+    [862 - TIGHTEN, -380],
+    [900 - TIGHTEN, MEET_Y],
   ]);
 
 const heading = (f: number) =>
@@ -50,21 +54,19 @@ const heading = (f: number) =>
     [553, -0.75],
     [625, -0.75],
     [660, 0],
-    [710, 0],
-    [735, 0.3],
-    [780, 0.3],
-    [810, 0],
-    // "...our colour and our stories fade.": a slow look across the grey
-    // village (between his close-ups, so it starts on a cut).
-    [STORIES - 1, 0],
-    [STORIES, -0.55],
-    [STORIES + 100, 0.55],
-    // "These houses are training grounds.": along the row of game houses,
-    // then back to him for "...brings words back."
-    [HOUSES_LOOK - 1, 0],
-    [HOUSES_LOOK, -0.62],
-    [HOUSES_LOOK + 58, 0.62],
-    [HOUSES_LOOK + 82, 0],
+    // "...our colour and our stories fade.": she eases out of his close-up
+    // and looks off across the grey village to the right, then back to him
+    // for "So how can I help?". One way only, so he never sweeps across.
+    [STORIES - 15, 0],
+    [STORIES + 25, 0.85],
+    [STORIES + 60, 0.85],
+    [STORIES + 97, 0],
+    // "These houses are training grounds.": the other way, to the Rhyme Time
+    // house on the left, and back to him before the letters rise.
+    [HOUSES_LOOK, 0],
+    [HOUSES_LOOK + 35, -0.72],
+    [HOUSES_LOOK + 70, -0.72],
+    [HOUSES_LOOK + 100, 0],
     // After "Let's begin.", round to the Rhyme Time house.
     [QUEST_CARD.at - 30, 0],
     [QUEST_CARD.at + 8, HOUSE_HEADING],
@@ -73,10 +75,8 @@ const heading = (f: number) =>
 const horizon = (f: number) =>
   track(f, [
     [0, 120],
-    [710, 120],
-    [740, 112],
-    [780, 112],
-    [815, 122],
+    [680, 120],
+    [720, 122],
   ]);
 
 // Each line plays its recorded take (public/voice); `reveal` types the text
@@ -176,7 +176,7 @@ export const NPC_LINES: NpcLine[] = [
 
 export const ROWAN_LINES: Line[] = [
   {
-    from: 915,
+    from: 915 - TIGHTEN,
     dur: 118,
     // The reveal counts characters for HERO_NAME = "Hero".
     text: `You heard my call. Thank you for coming, ${HERO_NAME}.`,
@@ -197,7 +197,7 @@ export const ROWAN_LINES: Line[] = [
     ],
   },
   {
-    from: 1060,
+    from: 1060 - TIGHTEN,
     dur: 222,
     text: "The Dark Wizard stole every word in this realm. Without words, our colour and our stories fade.",
     voice: "voice/rowan-village2.mp3",
@@ -225,7 +225,7 @@ export const ROWAN_LINES: Line[] = [
     ],
   },
   {
-    from: 1312,
+    from: 1312 - TIGHTEN,
     dur: 166,
     text: "These houses are training grounds. Every game you clear brings words back.",
     voice: "voice/rowan-village3.mp3",
@@ -247,7 +247,7 @@ export const ROWAN_LINES: Line[] = [
     ],
   },
   {
-    from: 1505,
+    from: 1505 - TIGHTEN,
     dur: 148,
     text: "Walk up to a house, then press Play. Let's begin.",
     voice: "voice/rowan-village4.mp3",
@@ -277,9 +277,10 @@ export const VILLAGE_END = { x: 0, y: MEET_Y, heading: HOUSE_HEADING };
 // his way down to meet Hero, slowly, stopping once to steady himself.
 // `f` is a Village frame; the Arrival passes negative frames.
 export const ROWAN_WAIT = { x: 0, y: -660 };
-// He reaches her at 885 and takes a breath before speaking.
-export const ROWAN_WALK: [number, number] = [705, 885];
-export const ROWAN_STAGGER: [number, number] = [777, 801];
+// He sets off as she passes the fisherman, reaches her at 725 and takes a
+// breath before speaking. He stops to steady himself once she's looking.
+export const ROWAN_WALK: [number, number] = [545, 885 - TIGHTEN];
+export const ROWAN_STAGGER: [number, number] = [662, 686];
 // Townsfolk startled as she passes (Village frames).
 const NOTICE: { who: string; from: number; to: number }[] = [
   { who: "guard", from: 52, to: 169 },
@@ -324,7 +325,7 @@ export const villageActors = (f: number, lit?: (i: number) => number): Actor[] =
 };
 
 // The season's quest appears as Rowan says "Let's begin."
-export const QUEST: Popup = { at: ROWAN_LINES[3].from + 113, kind: "quest", title: "Bring back the words", sub: "0 / 5,000 words restored", dur: 60 };
+export const QUEST: Popup = { at: ROWAN_LINES[3].from + 113, kind: "quest", title: "Bring back the words", sub: "0 / 10 words restored", dur: 60 };
 
 // ---- Rowan's demo -------------------------------------------------------------
 // On "...brings words back.", a few golden letters rise out of Rowan's hands,
@@ -374,13 +375,37 @@ const ReturningLetters: React.FC<{ f: number; cam: Parameters<typeof toScreen>[0
   );
 };
 
-const droneVolume = (f: number) => {
+// Rowan's theme: the soft, tender track comes in under his first line as the
+// eerie drone fades out, dips under each line, swells with the colour bloom
+// and with "I'll do it!", and carries on into the walk to the Rhyme Time
+// house (Trial picks it up `THEME_CARRY` frames in).
+export const THEME_IN = ROWAN_LINES[3].from - 30;
+export const THEME_CARRY = VILLAGE_FRAMES - THEME_IN;
+const themeVolume = (f: number) => {
   const duck = Math.min(
-    ...[...NPC_LINES, BLACKSMITH, ...ROWAN_LINES].map((l) =>
-      interpolate(f, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.4, 0.4, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+    ...ROWAN_LINES.map((l) => interpolate(f, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.75, 0.75, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })),
+  );
+  const base = interpolate(f, [THEME_IN, THEME_IN + 75], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const ending = interpolate(f, [ROWAN_LINES[3].from + ROWAN_LINES[3].dur, VILLAGE_FRAMES - 40], [0, 0.25], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  // The track is mastered soft, so it runs near full volume to sit about
+  // 10 dB under the voices.
+  return Math.min(1, base * duck + 0.25 * bloomK(f) + ending);
+};
+
+// The realm theme, carried on unbroken from the Arrival (it started as she
+// came round), still building: under the townsfolk, Rowan coming down the
+// path and Rowan explaining everything, dipping under each line, and the
+// colour bloom. It hands over to Rowan's theme on his last line.
+const realmVolume = (f: number) => {
+  const duck = Math.min(
+    ...[...NPC_LINES, BLACKSMITH].map((l) =>
+      interpolate(f, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.75, 0.75, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+    ),
+    ...ROWAN_LINES.map((l) =>
+      interpolate(f, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.55, 0.55, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
     ),
   );
-  return interpolate(f, [VILLAGE_FRAMES - 60, VILLAGE_FRAMES], [0.5, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) * duck;
+  return interpolate(f, [THEME_IN, THEME_IN + 90], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) * duck;
 };
 
 // The Village's lines (every take, with its word-by-word typing) and its
@@ -402,9 +427,14 @@ export const VillageDialogue: React.FC<{ f: number; quest?: boolean }> = ({ f, q
 
 export const VillageSound: React.FC = () => (
   <>
-    {/* The Arrival's mystery drone carries on, dipping under every line. */}
-    <Sequence durationInFrames={VILLAGE_FRAMES} name="♪ mystery">
-      <Audio src={staticFile("music/mystery-drone.mp3")} trimBefore={DRONE_CARRY} volume={droneVolume} />
+    {/* The realm theme's quiet opening (from 0:00) under her walk in, the
+        townsfolk's questions and Rowan coming down the path; it hands over to
+        Rowan's theme as he speaks. */}
+    <Sequence durationInFrames={THEME_IN + 90} name="♪ realm theme">
+      <Audio src={staticFile("music/realm-theme.mp3")} trimBefore={DRONE_CARRY} volume={realmVolume} />
+    </Sequence>
+    <Sequence from={THEME_IN} durationInFrames={THEME_CARRY} name="♪ Rowan's theme">
+      <Audio src={staticFile("music/rebirth-background-music.mp3")} volume={(t) => themeVolume(t + THEME_IN)} />
     </Sequence>
     {/* The Arrival's morning wind carries on underneath. */}
     <Sequence durationInFrames={VILLAGE_FRAMES} name="🔊 morning wind">
@@ -452,23 +482,27 @@ const WIDE = 457;
 const lens = (f: number) =>
   track(f, [
     [R1.from - 10, WIDE],
-    [R1.from + R1.dur, 700],
-    [R2.from + 60, 760],
-    // Cut wide for the look across the grey village.
-    [STORIES - 1, 780],
-    [STORIES, WIDE],
-    [R3.from + R3.dur, WIDE],
+    [R1.from + R1.dur, 650],
+    [R2.from + 60, 690],
+    // Easing wide for each look away, and partway back in on the way back.
+    [STORIES - 15, 700],
+    [STORIES + 25, WIDE],
+    [STORIES + 60, WIDE],
+    [STORIES + 97, 620],
+    [HOUSES_LOOK, 620],
+    [HOUSES_LOOK + 35, WIDE],
+    [HOUSES_LOOK + 70, WIDE],
+    [HOUSES_LOOK + 100, WIDE],
     [R4.from, WIDE],
-    [R4.from + 100, 720],
+    [R4.from + 100, 660],
     // Back out over "Let's begin." for the turn to the houses.
     [QUEST_CARD.at - 30, WIDE],
   ]);
 
 // ---- The first quest -----------------------------------------------------------
 // After "Let's begin." she says she'll do it, the camera turns to the Rhyme
-// Time house, a quest marker bobs over it and the quest card pops up in the
-// middle of the screen, then tucks itself into the top-right corner.
-const QUEST_CARD = { at: R4.from + R4.dur + 30, dock: VILLAGE_FRAMES - 40 };
+// Time house and a quest marker bobs over it.
+const QUEST_CARD = { at: R4.from + R4.dur + 30 };
 
 const QuestMarker: React.FC<{ f: number; cam: Parameters<typeof toScreen>[0] }> = ({ f, cam }) => {
   const k = interpolate(f, [QUEST_CARD.at - 4, QUEST_CARD.at + 8], [0, 1], { ...clamp, easing: Easing.out(Easing.back(2)) });
@@ -496,60 +530,6 @@ const QuestMarker: React.FC<{ f: number; cam: Parameters<typeof toScreen>[0] }> 
   );
 };
 
-const QuestCard: React.FC<{ f: number }> = ({ f }) => {
-  const t = f - QUEST_CARD.at;
-  if (t < 0) return null;
-  const pop = interpolate(t, [0, 14], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.6)) });
-  const dock = interpolate(f, [QUEST_CARD.dock, QUEST_CARD.dock + 24], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
-  const fade = interpolate(f, [VILLAGE_FRAMES - 8, VILLAGE_FRAMES], [1, 0], clamp);
-  return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
-      <div
-        style={{
-          position: "absolute",
-          left: 960 + (1580 - 960) * dock,
-          top: 700 + (120 - 700) * dock,
-          width: 900,
-          transform: `translate(-50%, -50%) scale(${pop * (1 - 0.62 * dock)})`,
-          opacity: fade,
-          background: "linear-gradient(#24152f, #170d22)",
-          border: `6px solid ${C.cream}`,
-          outline: "6px solid #000",
-          borderRadius: 20,
-          boxShadow: "14px 14px 0 rgba(0,0,0,0.5)",
-          padding: "52px 56px 40px",
-          textAlign: "center",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: -34,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: C.gold,
-            border: "4px solid #000",
-            borderRadius: 10,
-            padding: "6px 30px",
-            fontFamily: BODY,
-            fontWeight: 700,
-            fontSize: 30,
-            letterSpacing: 4,
-            color: C.ink,
-            whiteSpace: "nowrap",
-          }}
-        >
-          NEW QUEST
-        </div>
-        <div style={{ fontFamily: BODY, fontWeight: 700, fontSize: 60, color: C.cream, lineHeight: 1.1 }}>Bring back the words</div>
-        <div style={{ fontFamily: BODY, fontWeight: 500, fontSize: 28, color: C.lilac, marginTop: 14 }}>First stop: the Rhyme Time house</div>
-        <div style={{ height: 30, marginTop: 30, borderRadius: 15, background: "#0b0712", border: "4px solid #000" }} />
-        <div style={{ fontFamily: BODY, fontWeight: 500, fontSize: 24, color: RIM, marginTop: 12 }}>0 / 5,000 words restored</div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
 export const Village: React.FC = () => {
   const f = useCurrentFrame();
   const w = walking(f, posY);
@@ -562,11 +542,12 @@ export const Village: React.FC = () => {
     y: posY(f),
     heading: heading(f) + Math.sin(f / 18) * 0.01 * w,
     eye: 26 - 12 * push + step * 0.7 * w,
-    horizon: horizon(f) + step * 2 * w,
+    // ...and the view drops a little so his hat stays in frame.
+    horizon: horizon(f) + 40 * push + step * 2 * w,
     focal: lens(f),
   };
   return (
-    <Pov cam={cam} actors={villageActors(f)} sky="dawn" drain={DRAIN} scorch={SCORCH} bloom={{ x: SPOTS.rowan.x, y: SPOTS.rowan.y, r: 80, k: bloomK(f) }}>
+    <Pov cam={cam} actors={villageActors(f)} sky="dawn" drain={DRAIN} scorch={SCORCH} glow={{ "rhyme-time": 0 }} bloom={{ x: SPOTS.rowan.x, y: SPOTS.rowan.y, r: 80, k: bloomK(f) }}>
       <ReturningLetters f={f} cam={cam} />
       <QuestMarker f={f} cam={cam} />
       <RealmTitle opacity={interpolate(f, [40, 70], [1, 0], clamp)} />
@@ -574,14 +555,7 @@ export const Village: React.FC = () => {
       {HERO_LINES.map((l) => (
         <Dialogue key={l.from} speaker={HERO_NAME} text={l.text} t={f - l.from} dur={l.dur} color={C.lilac} at="top" readable />
       ))}
-      <QuestCard f={f} />
       <VillageSound />
-      <Sequence from={QUEST_CARD.at} durationInFrames={50} name="🔊 new quest">
-        <Audio src={staticFile("sfx/ui-boot.mp3")} volume={0.5} />
-      </Sequence>
-      <Sequence from={QUEST_CARD.at} durationInFrames={50} name="🔊 new quest shimmer">
-        <Audio src={staticFile("sfx/summon.mp3")} volume={0.3} />
-      </Sequence>
     </Pov>
   );
 };

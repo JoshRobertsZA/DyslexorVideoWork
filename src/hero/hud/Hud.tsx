@@ -2,7 +2,6 @@ import React from "react";
 import { AbsoluteFill, Easing, Img, interpolate, random, staticFile } from "remotion";
 import { BODY, C, PIXEL } from "../../theme";
 import { ACCENT, HERO_NAME } from "../config";
-import { HeroSprite } from "../parts";
 
 // Hero's stats layer: the realm seen through a game interface, Sword Art
 // Online-style. A boot-up when she first opens her eyes, a HUD that follows
@@ -72,7 +71,7 @@ const Bar: React.FC<{ value: number; max: number; width: number; color: string; 
 const fmt = (n: number) => Math.round(n).toLocaleString("en-GB");
 
 // Where Hero starts: Chapter 1, before her first game.
-export const START_STATS: Stats = { level: 1, xp: 0, xpMax: 100, words: 0, wordsMax: 5000 };
+export const START_STATS: Stats = { level: 1, xp: 0, xpMax: 100, words: 0, wordsMax: 10 };
 
 // ---- The HUD ------------------------------------------------------------------
 
@@ -232,40 +231,16 @@ export const STATS_OPEN = 12;
 
 // A part of the stats screen to point at while it's being explained: it
 // glows gold and everything else dims.
-export type StatsFocus = "hero" | "xp" | "words";
-// A label popping beside the level ("LEVEL UP!") or the words count ("+1
-// WORD"), `k` 0..1 for how far it's in.
-export type StatsPop = { on: "xp" | "words"; text: string; k: number };
+export type StatsFocus = "xp" | "words";
 
 // Drawn like the realm's dialogue box (cream border, black outline, solid
 // plum) so the two read as one interface, with every word in Lexend and big
 // enough to read at a glance.
 const CARD = "linear-gradient(#24152f, #170d22)";
 // The panel's size, so a scene can sit things on its edges.
-export const STATS_PANEL = { w: 1240, h: 540 };
+// Just her progress: level, words restored and badges (no portrait card).
+export const STATS_PANEL = { w: 900, h: 540 };
 const WELL = "#0b0712";
-
-const PopTag: React.FC<{ pop?: StatsPop; on: StatsPop["on"] }> = ({ pop, on }) =>
-  pop && pop.on === on && pop.k > 0 ? (
-    <div
-      style={{
-        fontFamily: BODY,
-        fontWeight: 700,
-        fontSize: 28,
-        color: C.ink,
-        background: C.gold,
-        padding: "6px 16px",
-        border: "4px solid #000",
-        borderRadius: 10,
-        boxShadow: `0 0 26px ${C.gold}`,
-        opacity: pop.k,
-        transform: `scale(${0.6 + 0.4 * pop.k}) rotate(-4deg)`,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {pop.text}
-    </div>
-  ) : null;
 
 // A chunky rounded bar with tick marks every tenth, like a game's health bar.
 const FatBar: React.FC<{ value: number; max: number; color: string; light: string }> = ({ value, max, color, light }) => {
@@ -290,29 +265,6 @@ const FatBar: React.FC<{ value: number; max: number; color: string; light: strin
     </div>
   );
 };
-
-// A round or square icon chip at the start of a row.
-const Chip: React.FC<{ color: string; round?: boolean; children: React.ReactNode }> = ({ color, round, children }) => (
-  <div
-    style={{
-      width: 64,
-      height: 64,
-      flexShrink: 0,
-      borderRadius: round ? 32 : 14,
-      background: color,
-      border: "4px solid #000",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontFamily: BODY,
-      fontWeight: 700,
-      fontSize: 26,
-      color: C.ink,
-    }}
-  >
-    {children}
-  </div>
-);
 
 // A gold arrow pulsing at the left of the row being explained.
 const Pointer: React.FC<{ t: number }> = ({ t }) => (
@@ -342,7 +294,6 @@ export const StatsScreen: React.FC<{
   locked?: string[];
   skills: string[];
   focus?: StatsFocus;
-  pop?: StatsPop;
   offsetY?: number;
 }> = ({
   t,
@@ -352,7 +303,6 @@ export const StatsScreen: React.FC<{
   locked = [],
   skills,
   focus,
-  pop,
   offsetY = 0,
 }) => {
   if (t < 0 || t > dur) return null;
@@ -407,40 +357,14 @@ export const StatsScreen: React.FC<{
           STATUS
         </div>
         <div style={{ opacity: content, display: "flex", gap: 36, height: "100%", padding: "48px 44px 40px" }}>
-          {/* Who she is */}
-          <div style={{ ...row, width: 330, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, ...lit("hero") }}>
-            <div
-              style={{
-                width: 290,
-                height: 290,
-                borderRadius: 20,
-                border: "4px solid #000",
-                background: `radial-gradient(circle at 50% 45%, #4a3470, #1d1230 75%)`,
-                boxShadow: `inset 0 0 0 3px ${C.purple}`,
-                overflow: "hidden",
-                position: "relative",
-              }}
-            >
-              <div style={{ position: "absolute", left: 145 - 24.5 * 10, top: 160 - 32 * 10 }}>
-                <HeroSprite row={0} scale={10} animFps={5} />
-              </div>
-            </div>
-            <div style={{ fontFamily: BODY, fontWeight: 700, fontSize: 44, color: C.cream, lineHeight: 1 }}>{HERO_NAME}</div>
-            <div style={{ fontFamily: BODY, fontWeight: 500, fontSize: 22, color: RIM, border: `3px solid ${RIM}`, borderRadius: 20, padding: "4px 18px" }}>Reader</div>
-          </div>
-
           {/* What she's got */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 26 }}>
             <div style={{ ...row, position: "relative", ...lit("xp") }}>
               {focus === "xp" && <Pointer t={t} />}
               <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 12 }}>
-                <Chip color={C.gold} round>
-                  LV
-                </Chip>
                 <div style={label}>
                   Level <span style={{ color: C.gold }}>{stats.level}</span>
                 </div>
-                <PopTag pop={pop} on="xp" />
                 <div style={count}>
                   {fmt(stats.xp)} / {fmt(stats.xpMax)} XP
                 </div>
@@ -451,9 +375,7 @@ export const StatsScreen: React.FC<{
             <div style={{ ...row, position: "relative", ...lit("words") }}>
               {focus === "words" && <Pointer t={t} />}
               <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 12 }}>
-                <Chip color={RIM}>Aa</Chip>
                 <div style={label}>Words restored</div>
-                <PopTag pop={pop} on="words" />
                 <div style={count}>
                   {fmt(stats.words)} / {fmt(stats.wordsMax)}
                 </div>

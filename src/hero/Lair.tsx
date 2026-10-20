@@ -7,7 +7,7 @@ import { ACT1_SHOTS } from "./config";
 import { DarkWizard, WIZ } from "./DarkWizard";
 import { Footage } from "./Footage";
 import { AvatarSprite } from "./parts";
-import { Actor, Cam, idleCol, Pov } from "./realm/Pov";
+import { Actor, Cam, idleCol, Pov, walkCol } from "./realm/Pov";
 import { DRAIN, HOUSES, SCORCH } from "./realm/world";
 import { Bricks } from "./Tower";
 import { villageActors } from "./Village";
@@ -20,8 +20,8 @@ import { villageActors } from "./Village";
 // first. The hood comes down; a flash of the classroom; "my apprentice".
 // To be continued.
 //
-// The lines are text only for now, timed to be read comfortably, until
-// they're recorded.
+// The Wizard's lines play their recorded takes (public/voice/evil-new1-3),
+// typed with each take's pauses; the boy's are text only until recorded.
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
@@ -39,14 +39,53 @@ const CLOSE = { from: 720, to: 820 };
 const END = 830;
 
 type Who = "wizard" | "boy";
-type Line = { from: number; dur: number; who: Who; text: string };
+type Line = { from: number; dur: number; who: Who; text: string; voice?: string; reveal?: [number, number][] };
 const LINES: Line[] = [
-  { from: 76, dur: 120, who: "wizard", text: "So. Rowan found himself a reader." },
+  {
+    from: 76,
+    dur: 120,
+    who: "wizard",
+    text: "So. Rowan found himself a reader.",
+    voice: "voice/evil-new1.mp3",
+    reveal: [
+      [0, 0],
+      [29, 3],
+      [37, 3],
+      [112, 33],
+    ],
+  },
   { from: VOICE, dur: 64, who: "boy", text: "...I know her." },
-  { from: 306, dur: 110, who: "wizard", text: "Of course you do. She sits in your class." },
+  {
+    from: 306,
+    dur: 116,
+    who: "wizard",
+    text: "Of course you do. She sits in your class.",
+    voice: "voice/evil-new2.mp3",
+    reveal: [
+      [0, 0],
+      [44, 17],
+      [55, 17],
+      [106, 41],
+    ],
+  },
   { from: 430, dur: 120, who: "boy", text: "She's just like me. The letters swim for her too." },
-  { from: 612, dur: 112, who: "wizard", text: "Then watch her closely... my apprentice." },
+  {
+    from: 612,
+    dur: 172,
+    who: "wizard",
+    text: "Then watch her closely... my apprentice.",
+    voice: "voice/evil-new3.mp3",
+    reveal: [
+      [0, 0],
+      [64, 25],
+      [81, 25],
+      [124, 40],
+    ],
+  },
 ];
+// The drone dips under each recorded line.
+const duck = (f: number) =>
+  Math.min(1, ...LINES.filter((l) => l.voice).map((l) => interpolate(f, [l.from - 6, l.from, l.from + l.dur, l.from + l.dur + 12], [1, 0.5, 0.5, 1], clamp)));
 const SPEAKER: Record<Who, string> = { wizard: "Dark Wizard", boy: "???" };
 const TAG: Record<Who, string> = { wizard: "#ff6b78", boy: "#c9a8ff" };
 
@@ -64,14 +103,68 @@ const BOY_FEET = (f: number) => ({ x: interpolate(f, [STEP.from, STEP.to], [330,
 // no bow and an all-red hoodie (public/realm/classmate.png).
 const CLASSMATE = ["realm/classmate.png"];
 
-// The vision in his orb: the village from down the path, the lamps lit, the
-// townsfolk cheering, and her at the top of it with Dyslexi.
+// The vision in his orb: her win, over her shoulder. The lamps lit, the
+// townsfolk gathered round her at the top of the path, facing her and
+// hopping (where Trial's celebration puts them), Rowan in the middle.
 const VISION_C = { x: 1080, y: 380, r: 230 };
-const visionCam: Cam = { x: 14, y: -560, heading: Math.atan2(-14, 88), eye: 30, horizon: 150 };
+// The shot moves: close on her face first, then it circles round her (as the
+// Wizard says "So. Rowan found himself a reader.") until it's over her
+// shoulder, the townsfolk beyond her cheering.
+const HERO_AT = { x: 0, y: -648 };
+const ORBIT = { from: 74, to: 200 };
+const orbitK = (f: number) => interpolate(f, [ORBIT.from, ORBIT.to], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
+const visionCam = (f: number): Cam => {
+  const k = orbitK(f);
+  // Round her, from in front (between her and them) to behind her.
+  const a = Math.PI * k;
+  const r = 44 + 30 * k;
+  return {
+    x: HERO_AT.x + Math.sin(a) * r,
+    y: HERO_AT.y + Math.cos(a) * r,
+    heading: -a,
+    eye: 22 + 34 * k,
+    horizon: 150 - 100 * k,
+    focal: 520 - 90 * k,
+  };
+};
+const GATHERED: Record<string, { x: number; y: number }> = {
+  fisherman: { x: -82, y: -510 },
+  guard: { x: -44, y: -530 },
+  farmer: { x: -22, y: -518 },
+  merchant: { x: 22, y: -518 },
+  blacksmith: { x: 44, y: -530 },
+  rowan: { x: 0, y: -500 },
+};
+// Then, as in Trial, the cheering dies down: they head back down the path to
+// their places (at a walk, backs to us) and Rowan comes up to her.
+const DISPERSE_AT = 212;
+const ROWAN_UP = { from: 226, to: 300, y: -566 };
+const visionHop = (f: number, who: string) => {
+  const phase = (who.charCodeAt(0) * 7 + who.length * 5) % 18;
+  const k = interpolate(f, [DISPERSE_AT - 14, DISPERSE_AT], [1, 0], clamp);
+  return Math.sin((((f + phase) % 18) / 18) * Math.PI) * 7 * k;
+};
 const visionActors = (f: number): Actor[] => [
-  ...villageActors(99999, () => 1).map((a) => (a.sheet === "lamp" || a.sheet === "rowan" ? a : { ...a, bubble: true })),
-  { sheet: "hero", x: 0, y: -648, row: 0, col: idleCol(f), keep: true },
-  { sheet: "dyslexi", x: 10, y: -640, row: 0, col: idleCol(f), lift: 16, size: 0.7, keep: true },
+  ...villageActors(99999, () => 1).map((a) => {
+    if (a.sheet === "lamp") return a;
+    const at = GATHERED[a.sheet];
+    if (a.sheet === "rowan") {
+      const k = interpolate(f, [ROWAN_UP.from, ROWAN_UP.to], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
+      const moving = k > 0 && k < 1;
+      return { ...a, x: at.x, y: at.y + (ROWAN_UP.y - at.y) * k, row: moving ? 3 : 0, col: moving ? walkCol(f) : idleCol(f), flip: false, lift: 0 };
+    }
+    if (f < DISPERSE_AT) return { ...a, ...at, row: 0, col: idleCol(f), flip: false, lift: visionHop(f, a.sheet) };
+    // Back to their places (a.x, a.y), at about Rowan's pace.
+    const dist = Math.hypot(a.x - at.x, a.y - at.y);
+    const k = Math.min(1, ((f - DISPERSE_AT) * 1.1) / dist);
+    return k < 1 ? { ...a, x: at.x + (a.x - at.x) * k, y: at.y + (a.y - at.y) * k, row: 5, col: walkCol(f), lift: 0 } : a;
+  }),
+  // Facing us, then side-on, then her back, as the shot goes round her.
+  (() => {
+    const k = orbitK(f);
+    const row = k < 0.3 ? 0 : k < 0.7 ? 1 : 2;
+    return { sheet: "hero" as const, ...HERO_AT, row, col: idleCol(f), flip: false, keep: true, lift: visionHop(f, "hero") * 0.6 };
+  })(),
 ];
 
 const Vision: React.FC<{ f: number }> = ({ f }) => {
@@ -93,11 +186,27 @@ const Vision: React.FC<{ f: number }> = ({ f }) => {
         border: "6px solid #b78cff",
       }}
     >
-      <div style={{ position: "absolute", left: r - 960 * k, top: 0, width: 1920, height: 1080, transform: `scale(${k})`, transformOrigin: "0 0" }}>
-        <Pov cam={visionCam} actors={visionActors(f)} sky="dawn" drain={DRAIN} scorch={SCORCH} bloom={{ x: HOUSES[0].x, y: -700, r: 180, k: 1 }} />
+      {/* A hard circular clip: the Pov's canvas layers slip past a rounded
+          overflow clip and showed their square black corners. */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          clipPath: "circle(50% at 50% 50%)",
+          // Belt and braces: a circular mask too, on its own layer, so the
+          // square canvas never shows past the circle in Studio or a render.
+          WebkitMaskImage: "radial-gradient(circle at 50% 50%, #000 70.3%, transparent 70.8%)",
+          maskImage: "radial-gradient(circle at 50% 50%, #000 70.3%, transparent 70.8%)",
+          transform: "translateZ(0)",
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ position: "absolute", left: r - 960 * k, top: 0, width: 1920, height: 1080, transform: `scale(${k})`, transformOrigin: "0 0" }}>
+          <Pov cam={visionCam(f)} actors={visionActors(f)} sky="dawn" drain={DRAIN} scorch={SCORCH} bloom={{ x: HOUSES[0].x, y: -700, r: 180, k: 1 }} />
+        </div>
+        {/* The orb's purple, swirling over the picture */}
+        <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: `radial-gradient(transparent 50%, #7a3cff66 100%)`, transform: `rotate(${f}deg)` }} />
       </div>
-      {/* The orb's purple, swirling over the picture */}
-      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: `radial-gradient(transparent 50%, #7a3cff66 100%)`, transform: `rotate(${f}deg)` }} />
     </div>
   );
 };
@@ -223,7 +332,7 @@ export const Lair: React.FC = () => {
         </AbsoluteFill>
       )}
       {LINES.map((l) => (
-        <Dialogue key={l.from} speaker={SPEAKER[l.who]} text={l.text} t={f - l.from} dur={l.dur} color={TAG[l.who]} readable />
+        <Dialogue key={l.from} speaker={SPEAKER[l.who]} text={l.text} t={f - l.from} dur={l.dur} color={TAG[l.who]} reveal={l.reveal} readable />
       ))}
       <AbsoluteFill style={{ background: "#000", opacity: toBlack }} />
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", opacity: cont }}>
@@ -231,8 +340,10 @@ export const Lair: React.FC = () => {
       </AbsoluteFill>
 
       {/* Sound: thunder and the drone; a sting as the hood comes down */}
-      <Sequence durationInFrames={LAIR_FRAMES} name="♪ mystery">
-        <Audio src={staticFile("music/mystery-drone.mp3")} volume={(t) => interpolate(t, [0, 30, END, LAIR_FRAMES], [0, 0.5, 0.5, 0], clamp)} />
+      {/* The Wizard's menace under the whole scene (louder than the old
+          drone it replaces, so it runs lower), dipping under his lines. */}
+      <Sequence durationInFrames={LAIR_FRAMES} name="♪ evil background">
+        <Audio src={staticFile("music/evilbackgroundnoise.mp3")} volume={(t) => interpolate(t, [0, 30, END, LAIR_FRAMES], [0, 0.3, 0.3, 0.32], clamp) * duck(t)} />
       </Sequence>
       <Sequence durationInFrames={90} name="🔊 thunder">
         <Audio src={staticFile("sfx/thunder-strike.mp3")} volume={0.4} />
@@ -243,6 +354,11 @@ export const Lair: React.FC = () => {
       <Sequence from={HOOD - 4} durationInFrames={60} name="🔊 reveal">
         <Audio src={staticFile("sfx/staff-slam.mp3")} volume={0.5} />
       </Sequence>
+      {LINES.filter((l) => l.voice).map((l) => (
+        <Sequence key={`voice-${l.from}`} from={l.from} durationInFrames={l.dur + 15} name="🗣 voice">
+          <Audio src={staticFile(l.voice!)} volume={1} />
+        </Sequence>
+      ))}
       <Sequence from={END} durationInFrames={70} name="🔊 to be continued">
         <Audio src={staticFile("sfx/charge-up.mp3")} volume={0.25} />
       </Sequence>

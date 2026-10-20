@@ -96,9 +96,9 @@ export const ARRIVAL_FRAMES = 1594;
 export const DRONE_IN = 20;
 export const DRONE_CARRY = ARRIVAL_FRAMES - ARRIVAL_FALL - DRONE_IN;
 // Timed to the recorded takes, with room between lines: Rowan's last line
-// ends at ~1653, Hero answers, then she turns toward the Rhyme Time house and
-// gets her first quest.
-export const VILLAGE_FRAMES = 1800;
+// ends at ~1493, Hero answers, then she turns toward the Rhyme Time house and
+// the quest marker pops up over it (~1523). A short hold, and on.
+export const VILLAGE_FRAMES = 1575;
 export const DOOR_FRAMES = 450;
 export const SHOWCASE_FRAMES = 770;
 export const END_FRAMES = 280;

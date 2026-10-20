@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, Sequence, staticFile } from "remotion";
 import { Audio } from "@remotion/media";
 import { Arrival } from "./Arrival";
+import { Credits, CREDITS_FRAMES } from "./Credits";
 import { ACT1_FRAMES, ACT1_SHOTS, ACT2_FRAMES, ARRIVAL_FRAMES, TITLE_FRAMES, VILLAGE_FRAMES } from "./config";
 import { Lair, LAIR_FRAMES } from "./Lair";
 import { RealWorld } from "./RealWorld";
@@ -26,15 +27,20 @@ import { Village } from "./Village";
 // While PROLOGUE_ONLY is on, the film ends on the narrator's last line over
 // the portal's white (~1:10) and the scenes after it are left out.
 const PROLOGUE_ONLY = false;
+// While the classroom scenes (shot in real life) aren't filmed yet, leave them
+// out: the summoning's white goes straight into the fall. Set back to false
+// once the footage is in public/footage/.
+const SKIP_REAL_LIFE = true;
 
 const S_OPEN = 0;
 const S_SUMMON = S_OPEN + OPENING_FRAMES;
 const S_CLASS = S_SUMMON + SUMMONING_FRAMES;
-const S_ARRIVAL = S_CLASS + ACT1_FRAMES + ACT2_FRAMES;
+const S_ARRIVAL = S_CLASS + (SKIP_REAL_LIFE ? 0 : ACT1_FRAMES + ACT2_FRAMES);
 const S_VILLAGE = S_ARRIVAL + ARRIVAL_FRAMES;
 const S_GAME = S_VILLAGE + VILLAGE_FRAMES;
 const S_LAIR = S_GAME + TRIAL_FRAMES;
-export const INTO_THE_REALM_DURATION = PROLOGUE_ONLY ? S_CLASS : S_LAIR + LAIR_FRAMES;
+const S_CREDITS = S_LAIR + LAIR_FRAMES;
+export const INTO_THE_REALM_DURATION = PROLOGUE_ONLY ? S_CLASS : S_CREDITS + CREDITS_FRAMES;
 
 // When she hears the chime in class (the start of s03).
 const BEFORE_CHIME = ACT1_SHOTS.slice(0, ACT1_SHOTS.findIndex((s) => s.id === "s03")).reduce((t, s) => t + s.frames, 0);
@@ -61,12 +67,16 @@ export const IntoTheRealm: React.FC = () => {
 // Everything after the Wizard's story.
 const ThePilot: React.FC = () => (
   <>
-    <Sequence from={S_CLASS} durationInFrames={S_ARRIVAL - S_CLASS} name="2 · Real life: the reading lesson, the door">
-      <RealWorld />
-    </Sequence>
-    <Sequence from={CHIME} durationInFrames={90} name="♪ the chime, in class">
-      <Audio src={staticFile("music/sound_effect.mp3")} volume={0.35} />
-    </Sequence>
+    {!SKIP_REAL_LIFE && (
+      <>
+        <Sequence from={S_CLASS} durationInFrames={S_ARRIVAL - S_CLASS} name="2 · Real life: the reading lesson, the door">
+          <RealWorld />
+        </Sequence>
+        <Sequence from={CHIME} durationInFrames={90} name="♪ the chime, in class">
+          <Audio src={staticFile("music/sound_effect.mp3")} volume={0.35} />
+        </Sequence>
+      </>
+    )}
     <Sequence from={S_ARRIVAL} durationInFrames={ARRIVAL_FRAMES} name="3 · Arrival">
       <Arrival />
     </Sequence>
@@ -78,6 +88,9 @@ const ThePilot: React.FC = () => (
     </Sequence>
     <Sequence from={S_LAIR} durationInFrames={LAIR_FRAMES} name="6 · Ending: the Wizard's apprentice">
       <Lair />
+    </Sequence>
+    <Sequence from={S_CREDITS} durationInFrames={CREDITS_FRAMES} name="7 · End credits">
+      <Credits />
     </Sequence>
   </>
 );
