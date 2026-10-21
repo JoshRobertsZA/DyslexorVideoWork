@@ -11,6 +11,7 @@ import { OpeningTitles, OPENING_TITLES_FRAMES, TITLES_OVERLAP } from "./OpeningT
 import { BRIDGE_FRAMES, BRIDGE_IN, StoryBridge } from "./StoryBridge";
 import { RealWorld } from "./RealWorld";
 import { Opening, OPENING_FRAMES } from "./Opening";
+import { IntroScene, INTRO_FRAMES } from "../intro/IntroScene";
 import { SUMMON_CHIME, Summoning, SUMMONING_FRAMES } from "./Summoning";
 import { Trial, TRIAL_FRAMES } from "./Trial";
 import { Village } from "./Village";
@@ -41,12 +42,16 @@ const PROLOGUE_ONLY = false;
 const SKIP_REAL_LIFE = true;
 // The Wizard's story, straight after the titles.
 const WIZARD_STORY = true;
+// Rowan's story opens with the new narrated intro (src/intro) instead of the
+// old Opening. Set to false to go back to the old one.
+const NEW_INTRO = true;
+const STORY_FRAMES = NEW_INTRO ? INTRO_FRAMES : OPENING_FRAMES;
 
 // The Dyslexor Studios ident, the opening titles, then the episode.
 const S_TITLES = IDENT_FRAMES;
 // Rowan's story starts under the end of the titles, which dissolve into it.
 const S_OPEN = S_TITLES + OPENING_TITLES_FRAMES - (WIZARD_STORY ? TITLES_OVERLAP : 0);
-const S_SUMMON = S_OPEN + OPENING_FRAMES;
+const S_SUMMON = S_OPEN + STORY_FRAMES;
 const S_CLASS = WIZARD_STORY ? S_SUMMON + SUMMONING_FRAMES : S_OPEN;
 const S_ARRIVAL = S_CLASS + (SKIP_REAL_LIFE ? 0 : ACT1_FRAMES + ACT2_FRAMES);
 const S_VILLAGE = S_ARRIVAL + ARRIVAL_FRAMES;
@@ -68,8 +73,8 @@ export const IntoTheRealm: React.FC = () => {
         <Ident carryMusic />
       </Sequence>
       {WIZARD_STORY && (
-        <Sequence from={S_OPEN} durationInFrames={OPENING_FRAMES} name="1 · The Wizard: the realm of words">
-          <Opening />
+        <Sequence from={S_OPEN} durationInFrames={STORY_FRAMES} name="1 · The Wizard: the realm of words">
+          {NEW_INTRO ? <IntroScene /> : <Opening />}
         </Sequence>
       )}
       {/* On top of the story's start, so they dissolve into it */}
