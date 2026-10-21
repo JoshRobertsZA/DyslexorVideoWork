@@ -21,7 +21,7 @@ import { villageActors } from "./Village";
 // To be continued.
 //
 // The Wizard's lines play their recorded takes (public/voice/evil-new1-3),
-// typed with each take's pauses; the boy's are text only until recorded.
+// and the boy's theirs (apprentice-*), each typed with its take's pauses.
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
@@ -54,7 +54,7 @@ const LINES: Line[] = [
       [112, 33],
     ],
   },
-  { from: VOICE, dur: 64, who: "boy", text: "...I know her." },
+  { from: VOICE, dur: 64, who: "boy", text: "...I know her.", voice: "voice/apprentice-know-her.mp3", reveal: [[0, 0], [15, 5], [27, 10], [39, 14]] },
   {
     from: 306,
     dur: 116,
@@ -68,7 +68,7 @@ const LINES: Line[] = [
       [106, 41],
     ],
   },
-  { from: 430, dur: 120, who: "boy", text: "She's just like me. The letters swim for her too." },
+  { from: 430, dur: 130, who: "boy", text: "She's just like me. The letters swim for her too.", voice: "voice/apprentice-like-me.mp3", reveal: [[0, 0], [22, 6], [27, 11], [38, 16], [50, 20], [65, 20], [70, 24], [79, 32], [91, 37], [98, 41], [103, 45], [115, 49]] },
   {
     from: 612,
     dur: 172,

@@ -3,14 +3,22 @@ import { AbsoluteFill, Sequence, staticFile } from "remotion";
 import { Audio } from "@remotion/media";
 import { Arrival } from "./Arrival";
 import { Credits, CREDITS_FRAMES } from "./Credits";
+import { Ident, IDENT_FRAMES } from "./Ident";
 import { ACT1_FRAMES, ACT1_SHOTS, ACT2_FRAMES, ARRIVAL_FRAMES, TITLE_FRAMES, VILLAGE_FRAMES } from "./config";
 import { Lair, LAIR_FRAMES } from "./Lair";
+import { NextTime, NEXT_TIME_FRAMES } from "./NextTime";
+import { OpeningTitles, OPENING_TITLES_FRAMES, TITLES_OVERLAP } from "./OpeningTitles";
+import { BRIDGE_FRAMES, BRIDGE_IN, StoryBridge } from "./StoryBridge";
 import { RealWorld } from "./RealWorld";
 import { Opening, OPENING_FRAMES } from "./Opening";
 import { SUMMON_CHIME, Summoning, SUMMONING_FRAMES } from "./Summoning";
 import { Trial, TRIAL_FRAMES } from "./Trial";
 import { Village } from "./Village";
 
+// Running order (2026-10-21): the Dyslexor Studios ident; the opening titles
+// over cinematics of the realm; the Wizard's story (Opening + Summoning);
+// real life (the classroom); then back to the realm for the rest.
+//
 // Season 1, Episode 1: the pilot (docs/SEASON-1.md). The Wizard's story: long
 // ago, Elder Rowan spends his last spell calling for help against him. Then
 // real life: in a reading lesson Hero is asked to read aloud and the letters
@@ -31,16 +39,23 @@ const PROLOGUE_ONLY = false;
 // out: the summoning's white goes straight into the fall. Set back to false
 // once the footage is in public/footage/.
 const SKIP_REAL_LIFE = true;
+// The Wizard's story, straight after the titles.
+const WIZARD_STORY = true;
 
-const S_OPEN = 0;
+// The Dyslexor Studios ident, the opening titles, then the episode.
+const S_TITLES = IDENT_FRAMES;
+// Rowan's story starts under the end of the titles, which dissolve into it.
+const S_OPEN = S_TITLES + OPENING_TITLES_FRAMES - (WIZARD_STORY ? TITLES_OVERLAP : 0);
 const S_SUMMON = S_OPEN + OPENING_FRAMES;
-const S_CLASS = S_SUMMON + SUMMONING_FRAMES;
+const S_CLASS = WIZARD_STORY ? S_SUMMON + SUMMONING_FRAMES : S_OPEN;
 const S_ARRIVAL = S_CLASS + (SKIP_REAL_LIFE ? 0 : ACT1_FRAMES + ACT2_FRAMES);
 const S_VILLAGE = S_ARRIVAL + ARRIVAL_FRAMES;
 const S_GAME = S_VILLAGE + VILLAGE_FRAMES;
 const S_LAIR = S_GAME + TRIAL_FRAMES;
 const S_CREDITS = S_LAIR + LAIR_FRAMES;
-export const INTO_THE_REALM_DURATION = PROLOGUE_ONLY ? S_CLASS : S_CREDITS + CREDITS_FRAMES;
+// "Next time": the Episode 2 preview, after the Dyslexor end card.
+const S_NEXT = S_CREDITS + CREDITS_FRAMES;
+export const INTO_THE_REALM_DURATION = PROLOGUE_ONLY ? S_CLASS : S_NEXT + NEXT_TIME_FRAMES;
 
 // When she hears the chime in class (the start of s03).
 const BEFORE_CHIME = ACT1_SHOTS.slice(0, ACT1_SHOTS.findIndex((s) => s.id === "s03")).reduce((t, s) => t + s.frames, 0);
@@ -49,16 +64,32 @@ const CHIME = S_CLASS + TITLE_FRAMES + BEFORE_CHIME + 6;
 export const IntoTheRealm: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
-      <Sequence from={S_OPEN} durationInFrames={OPENING_FRAMES} name="1 · The Wizard: the realm of words">
-        <Opening />
+      <Sequence durationInFrames={IDENT_FRAMES} name="0 · Dyslexor Studios">
+        <Ident carryMusic />
       </Sequence>
-      <Sequence from={S_SUMMON} durationInFrames={SUMMONING_FRAMES} name="1 · The Wizard: the summoning">
-        <Summoning />
+      {WIZARD_STORY && (
+        <Sequence from={S_OPEN} durationInFrames={OPENING_FRAMES} name="1 · The Wizard: the realm of words">
+          <Opening />
+        </Sequence>
+      )}
+      {/* On top of the story's start, so they dissolve into it */}
+      <Sequence from={S_TITLES} durationInFrames={OPENING_TITLES_FRAMES} name="0 · Opening titles">
+        <OpeningTitles />
       </Sequence>
-      {/* Rowan's spell chimes, the same chime Hero hears later. */}
-      <Sequence from={S_SUMMON + SUMMON_CHIME} durationInFrames={90} name="♪ summoning chime">
-        <Audio src={staticFile("music/sound_effect.mp3")} volume={0.6} />
-      </Sequence>
+      {WIZARD_STORY && (
+        <>
+          <Sequence from={S_OPEN - BRIDGE_IN} durationInFrames={BRIDGE_FRAMES} name="0 · Bridge into Rowan's story">
+            <StoryBridge />
+          </Sequence>
+          <Sequence from={S_SUMMON} durationInFrames={SUMMONING_FRAMES} name="1 · The Wizard: the summoning">
+            <Summoning />
+          </Sequence>
+          {/* Rowan's spell chimes, the same chime Hero hears later. */}
+          <Sequence from={S_SUMMON + SUMMON_CHIME} durationInFrames={90} name="♪ summoning chime">
+            <Audio src={staticFile("music/sound_effect.mp3")} volume={0.6} />
+          </Sequence>
+        </>
+      )}
       {!PROLOGUE_ONLY && <ThePilot />}
     </AbsoluteFill>
   );
@@ -91,6 +122,9 @@ const ThePilot: React.FC = () => (
     </Sequence>
     <Sequence from={S_CREDITS} durationInFrames={CREDITS_FRAMES} name="7 · End credits">
       <Credits />
+    </Sequence>
+    <Sequence from={S_NEXT} durationInFrames={NEXT_TIME_FRAMES} name="8 · Next time: Episode 2 preview">
+      <NextTime />
     </Sequence>
   </>
 );

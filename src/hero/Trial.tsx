@@ -226,12 +226,12 @@ const LINES: Line[] = [
   },
   { from: HOMEWARD.from + 4, dur: 70, who: "dyslexi", text: "Next stop: home!", voice: "voice/dyslexi-voiceline14.mp3" },
   { from: DOCK + 2, dur: 68, who: "dyslexi", text: "Home sweet home.", voice: "voice/dyslexi-voiceline15.mp3" },
-  { from: CHEER + 70, dur: 80, who: "farmer", text: "Light! Real light!" },
+  { from: CHEER + 70, dur: 80, who: "farmer", text: "Light! Real light!", voice: "voice/farmer-light.mp3", reveal: [[0, 0], [15, 7], [31, 7], [40, 12], [53, 18]] },
   { from: AFTER + 300, dur: 60, who: "dyslexi", text: "One down!", voice: "voice/dyslexi-voiceline16.mp3" },
-  // The townsfolk's turn (text only until recorded).
-  { from: AFTER + 380, dur: 80, who: "guard", text: "Three cheers for the Reader!" },
+  // The townsfolk's turn (the blacksmith's is text only until recorded).
+  { from: AFTER + 380, dur: 80, who: "guard", text: "Three cheers for the Reader!", voice: "voice/guard-cheers.mp3", reveal: [[0, 0], [13, 6], [23, 13], [34, 17], [38, 21], [48, 28]] },
   { from: AFTER + 466, dur: 92, who: "blacksmith", text: "I knew it! I knew she was the one!" },
-  { from: AFTER + 564, dur: 92, who: "fisherman", text: "Look! Even the fish are jumping!" },
+  { from: AFTER + 564, dur: 92, who: "fisherman", text: "Look! Even the fish are jumping!", voice: "voice/fisherman-jumping.mp3", reveal: [[0, 0], [13, 6], [28, 6], [32, 11], [36, 15], [45, 20], [52, 24], [61, 32]] },
   // Rowan's lines here are recorded (public/voice/elder-rowan-new1-3, Fish Audio).
   { from: AFTER + 662, dur: 120, who: "rowan", text: "Well done, child. Well done.", voice: "voice/elder-rowan-new1.mp3", reveal: [[0, 0], [56, 17], [67, 17], [109, 28]] },
   { from: AFTER + 786, dur: 86, who: "hero", text: "I... I actually did it!" },

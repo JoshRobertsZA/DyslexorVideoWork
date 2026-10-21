@@ -61,6 +61,10 @@ export const SHEETS = {
   merchant: "realm/npc_merchant.png",
   blacksmith: "realm/npc_blacksmith.png",
   fisherman: "realm/npc_fisherman.png",
+  // The boy from her class, the Wizard's apprentice (see Lair.tsx).
+  classmate: "realm/classmate.png",
+  // A log to sit on, as a single 48px cell (NextTime.tsx).
+  log: "realm/log.png",
   house: "realm/house.png",
   tree: "realm/maple-tree.png",
   fence: "realm/fence.png",

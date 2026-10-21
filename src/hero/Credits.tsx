@@ -27,6 +27,8 @@ const MUSIC = [
   // evilbackgroundnoise.mp3 (the Lair and these credits). Royalty free; the
   // composer asks for his name and links in the credits
   // (https://www.youtube.com/watch?v=-GuD1rs9Z5I).
+  // The Dyslexor Studios ident now uses music/cinematic-intro.mp3; add its
+  // title and composer here once known.
   { title: "Dark Choir Music", by: "Mattia Cupelli", note: "Music © 2014 Mattia Cupelli · www.mattiacupelli.com · soundcloud.com/mattiacupelli" },
 ];
 
@@ -60,15 +62,19 @@ const ROLL: Block[] = [
   // The Narrator's, Rowan's and the Blacksmith's takes carry Fish Audio tags
   // (public/voice/*.mp3 metadata). The Dark Wizard (evil-line*, evil-new*) is
   // ElevenLabs' "Branok - Evil & Villainous" voice, and Dyslexi is its "Lulu
-  // Lolipop - High-Pitched and Bubbly" (the team, 2026-10-20).
+  // Lolipop - High-Pitched and Bubbly" (the team, 2026-10-20). The farmer,
+  // blacksmith, fisherman and the apprentice (???) are ElevenLabs' "Cherry
+  // Twinkle", "Rusty Malone", "Scotty" and "Valf" (the team, 2026-10-21).
   { kind: "heading", text: "VOICE CAST", sub: "in order of appearance" },
   { kind: "pair", role: "Narrator", names: ["Voice created with Fish Audio"] },
   { kind: "pair", role: "The Dark Wizard", names: ["“Branok” voice by ElevenLabs"] },
   { kind: "pair", role: "Elder Rowan", names: ["Voice created with Fish Audio"] },
   { kind: "pair", role: "Hero", names: ["Sushmitha Nooka"] },
   { kind: "pair", role: "Dyslexi", names: ["“Lulu Lolipop” voice by ElevenLabs"] },
-  { kind: "pair", role: "Blacksmith", names: ["Voice created with Fish Audio"] },
-  { kind: "pair", role: "???", names: ["Joshua Roberts"] },
+  { kind: "pair", role: "Farmer", names: ["“Cherry Twinkle” voice by ElevenLabs"] },
+  { kind: "pair", role: "Blacksmith", names: ["“Rusty Malone” voice by ElevenLabs"] },
+  { kind: "pair", role: "Fisherman", names: ["“Scotty” voice by ElevenLabs"] },
+  { kind: "pair", role: "???", names: ["“Valf” voice by ElevenLabs"] },
 
   { kind: "heading", text: "PRODUCTION TEAM" },
   {
@@ -229,11 +235,12 @@ const BlockView: React.FC<{ b: Block }> = ({ b }) => {
       );
     case "pair":
       return (
-        <div style={{ ...box, display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: CENTRE_GAP * 2 }}>
+        <div style={{ ...box, display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: CENTRE_GAP * 2 }}>
           <div style={{ ...ROLE, textAlign: "right", lineHeight: `${PAIR_LINE}px` }}>{b.role}</div>
           <div>
             {b.names.map((n) => (
-              <div key={n} style={{ ...NAME, lineHeight: `${PAIR_LINE}px` }}>
+              // One line each: a wrapped name ran into the next row.
+              <div key={n} style={{ ...NAME, lineHeight: `${PAIR_LINE}px`, whiteSpace: "nowrap" }}>
                 {n}
               </div>
             ))}

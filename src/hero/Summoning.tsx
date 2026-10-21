@@ -22,6 +22,10 @@ export const SUMMONING_FRAMES = 985;
 export const SUMMON_CHIME = 800;
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+
+// The whole scene's level: 3 dB down, so it sits with the ident and titles.
+const STORY_GAIN = 0.71;
+const gain = (v: number | ((t: number) => number)) => (typeof v === "function" ? (t: number) => STORY_GAIN * v(t) : STORY_GAIN * v);
 const ease = { ...clamp, easing: Easing.inOut(Easing.quad) };
 
 const PX = 10;
@@ -1075,17 +1079,17 @@ export const Summoning: React.FC = () => {
       <AbsoluteFill style={{ backgroundColor: "#fff", opacity: white }} />
       <EndingOnWhite f={f} />
       <Sequence from={END.line} durationInFrames={END.lineOut - END.line + 20} name="🗣 Narrator">
-        <Audio src={staticFile(END_LINE.voice)} volume={1} />
+        <Audio src={staticFile(END_LINE.voice)} volume={gain(1)} />
       </Sequence>
 
       {/* Fight music, carried on from the Opening's first bolt, dipping under
           each voice line and fading out into the summoning chime. */}
       <Sequence durationInFrames={SUMMON_CHIME + 40} name="♪ fight">
-        <Audio src={staticFile("music/fighting-background-music.mp3")} trimBefore={MUSIC_SKIP + MUSIC_PREROLL} volume={musicVolume} />
+        <Audio src={staticFile("music/fighting-background-music.mp3")} trimBefore={MUSIC_SKIP + MUSIC_PREROLL} volume={gain(musicVolume)} />
       </Sequence>
       {LINES.filter((l) => l.voice).map((l) => (
         <Sequence key={l.from} from={l.from} durationInFrames={l.dur + 15} name={`🗣 ${l.who}`}>
-          <Audio src={staticFile(l.voice!)} volume={1} />
+          <Audio src={staticFile(l.voice!)} volume={gain(1)} />
         </Sequence>
       ))}
       {SFX.map((c, i) => {
@@ -1094,7 +1098,7 @@ export const Summoning: React.FC = () => {
           <Sequence key={i} from={from} durationInFrames={c.len} name={`🔊 ${c.src}`}>
             <Audio
               src={staticFile(`sfx/${c.src}.mp3`)}
-              volume={(t) => SFX_LEVEL * c.vol * interpolate(t, [0, 2, c.len - (c.fade ?? 8), c.len], [from < 0 ? 0 : 1, 1, 1, 0], clamp)}
+              volume={gain((t) => SFX_LEVEL * c.vol * interpolate(t, [0, 2, c.len - (c.fade ?? 8), c.len], [from < 0 ? 0 : 1, 1, 1, 0], clamp))}
             />
           </Sequence>
         );

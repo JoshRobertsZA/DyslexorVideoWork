@@ -56,13 +56,15 @@ export type Actor = {
   bubble?: boolean;
 };
 
-export type Sky = "day" | "dusk" | "dawn";
+export type Sky = "day" | "dusk" | "dawn" | "night";
 
 const SKIES: Record<Sky, { top: string; bottom: string; fog: [number, number, number]; hills: string; hillsFar: string }> = {
   day: { top: "#5fa8e0", bottom: "#cdeefb", fog: [205, 238, 251], hills: "#3f8f5a", hillsFar: "#7cb98c" },
   dusk: { top: "#2a1838", bottom: "#f4a259", fog: [244, 162, 89], hills: "#2f3a4f", hillsFar: "#6b4f6f" },
   // The cold morning after the Dark Wizard's attack.
   dawn: { top: "#5b6aa3", bottom: "#f0b49a", fog: [206, 184, 186], hills: "#3a4a5a", hillsFar: "#7a7f95" },
+  // Stars, and a dark blue haze (the Episode 2 preview's campfire).
+  night: { top: "#050817", bottom: "#233063", fog: [28, 36, 78], hills: "#0f1530", hillsFar: "#1b2448" },
 };
 
 // A burnt patch on the floor, in world texels.
@@ -208,7 +210,18 @@ export const Pov: React.FC<PovProps> = ({ cam: camIn, actors = [], hands = [], s
     ctx.fillRect(0, 0, LW, LH);
 
     // Pixel clouds drifting, parallax with heading.
-    ctx.fillStyle = sky === "day" ? "#ffffff" : sky === "dawn" ? "#e9b8a8" : "#f7c6a0";
+    if (sky === "night") {
+      for (let i = 0; i < 90; i++) {
+        const period = LW + 40;
+        const sx = (((i * 211 - cam.heading * 320) % period) + period) % period - 20;
+        const sy = hz - 20 - ((i * 137) % 300);
+        ctx.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(frame / (10 + (i % 7)) + i));
+        ctx.fillStyle = i % 5 === 0 ? "#cfe0ff" : "#fff6e5";
+        ctx.fillRect(Math.round(sx), sy, i % 11 === 0 ? 2 : 1, i % 11 === 0 ? 2 : 1);
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = sky === "day" ? "#ffffff" : sky === "dawn" ? "#e9b8a8" : sky === "night" ? "#1e2a55" : "#f7c6a0";
     for (let i = 0; i < 12; i++) {
       const period = LW + 200;
       const cx = (((i * 173 - cam.heading * 260 + frame * 0.08 * (1 + (i % 3))) % period) + period) % period - 100;

@@ -9,6 +9,8 @@ import { ACCENT, FIGHT_CAM, MUSIC_PREROLL, MUSIC_SKIP } from "./config";
 import { DarkWizard, WIZ } from "./DarkWizard";
 import { Backdrop, Foreground, GROUND, Layer, LensFoliage, NightSky } from "./NightVillage";
 import { track } from "./parts";
+import { IDENT_MUSIC, IDENT_MUSIC_END, MASTER } from "./Ident";
+import { OPENING_TITLES_FRAMES, TITLES_OVERLAP } from "./OpeningTitles";
 
 // The narrated opening, before the fight. Golden hour in the realm of words:
 // letters drift like fireflies and hang from the trees, Elder Rowan stands on
@@ -21,6 +23,10 @@ import { track } from "./parts";
 export const OPENING_FRAMES = 1125;
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+
+// The whole scene's level: 3 dB down, so it sits with the ident and titles.
+const STORY_GAIN = 0.71;
+const gain = (v: number | ((t: number) => number)) => (typeof v === "function" ? (t: number) => STORY_GAIN * v(t) : STORY_GAIN * v);
 const PX = 10;
 
 // Narration (public/voice/beginningvoiceline1-4). `len` is the take's length
@@ -697,7 +703,9 @@ export const Opening: React.FC = () => {
       <AbsoluteFill
         style={{ background: "linear-gradient(transparent 70%, #000a 100%)", opacity: interpolate(f, [720, 760], [1, 0], clamp), pointerEvents: "none" }}
       />
-      {NARRATION.flatMap((n) => n.subs.map((sub) => <Subtitle key={`${n.at}-${sub.from}`} f={f} at={n.at} sub={sub} />))}
+      {/* No subtitles on the first line: it plays under the end of the titles
+          and the widescreen bars (see StoryBridge.tsx). */}
+      {NARRATION.slice(1).flatMap((n) => n.subs.map((sub) => <Subtitle key={`${n.at}-${sub.from}`} f={f} at={n.at} sub={sub} />))}
       {/* Tension: a low rumble and a rising charge from "Make me." into the
           first bolt, where the fight music hits (and carries on into the
           Summoning). */}
@@ -705,67 +713,73 @@ export const Opening: React.FC = () => {
         <Audio
           src={staticFile("sfx/thunder-strike.mp3")}
           trimBefore={66}
-          volume={(t) => interpolate(t, [0, 40, OPENING_FRAMES - S.makeMe - 4, OPENING_FRAMES - S.makeMe + 10], [0, 0.5, 0.7, 0], clamp)}
+          volume={gain((t) => interpolate(t, [0, 40, OPENING_FRAMES - S.makeMe - 4, OPENING_FRAMES - S.makeMe + 10], [0, 0.5, 0.7, 0], clamp))}
         />
       </Sequence>
       <Sequence from={OPENING_FRAMES - MUSIC_PREROLL - 80} durationInFrames={80} name="🔊 riser">
-        <Audio src={staticFile("sfx/charge-up.mp3")} volume={(t) => interpolate(t, [0, 60, 80], [0.15, 0.6, 0.6], clamp)} />
+        <Audio src={staticFile("sfx/charge-up.mp3")} volume={gain((t) => interpolate(t, [0, 60, 80], [0.15, 0.6, 0.6], clamp))} />
       </Sequence>
       <Sequence from={OPENING_FRAMES - MUSIC_PREROLL} durationInFrames={MUSIC_PREROLL} name="♪ fight (first hit)">
-        <Audio src={staticFile("music/fighting-background-music.mp3")} trimBefore={MUSIC_SKIP} volume={0.45} />
+        <Audio src={staticFile("music/fighting-background-music.mp3")} trimBefore={MUSIC_SKIP} volume={gain(0.45)} />
       </Sequence>
       <Sequence from={OPENING_FRAMES - MUSIC_PREROLL} durationInFrames={30} name="🔊 first-bolt boom">
-        <Audio src={staticFile("sfx/staff-slam.mp3")} volume={(t) => interpolate(t, [0, 20, 30], [0.35, 0.35, 0], clamp)} />
+        <Audio src={staticFile("sfx/staff-slam.mp3")} volume={gain((t) => interpolate(t, [0, 20, 30], [0.35, 0.35, 0], clamp))} />
       </Sequence>
       {STANDOFF.map((l) => (
         <Dialogue key={l.from} speaker={l.who} text={l.text} t={f - l.from} dur={l.dur} color={l.who === "Dark Wizard" ? DARK_RED : C.gold} reveal={l.reveal} />
       ))}
       <Grain opacity={0.06} />
 
-      {/* Sound: the realm's own theme while it's peaceful, wind and storm as
-          the dark comes, three booming knocks. */}
-      <Sequence durationInFrames={580} name="♪ realm theme">
-        <Audio src={staticFile("music/background-music.mp3")} volume={(t) => interpolate(t, [0, 30, 500, 580], [0, 0.35, 0.35, 0], clamp)} />
+      {/* Sound: the ident's cinematic music carries on from the opening titles
+          (picked up exactly where the titles hand it over, at their level),
+          settling under Rowan's voice while the realm is peaceful; wind and
+          storm as the dark comes, three booming knocks. */}
+      <Sequence durationInFrames={580} name="♪ cinematic music (cont.)">
+        <Audio
+          src={staticFile(IDENT_MUSIC)}
+          trimBefore={IDENT_MUSIC_END + OPENING_TITLES_FRAMES - TITLES_OVERLAP}
+          volume={(t) => MASTER * interpolate(t, [0, 60, 500, 580], [0.42, 0.32, 0.32, 0], clamp)}
+        />
       </Sequence>
       <Sequence from={500} durationInFrames={OPENING_FRAMES - 500} name="🔊 ambience">
-        <Audio src={staticFile("sfx/ambience.mp3")} volume={(t) => interpolate(t, [0, 120], [0, 0.6], clamp)} />
+        <Audio src={staticFile("sfx/ambience.mp3")} volume={gain((t) => interpolate(t, [0, 120], [0, 0.6], clamp))} />
       </Sequence>
       {KNOCKS.map((k, i) => (
         <Sequence key={k} from={k} durationInFrames={i === 2 ? 40 : 20} name="🔊 knock">
-          <Audio src={staticFile("sfx/staff-slam.mp3")} volume={(t) => 0.55 * interpolate(t, [0, i === 2 ? 30 : 12, i === 2 ? 40 : 20], [1, 1, 0], clamp)} />
+          <Audio src={staticFile("sfx/staff-slam.mp3")} volume={gain((t) => 0.55 * interpolate(t, [0, i === 2 ? 30 : 12, i === 2 ? 40 : 20], [1, 1, 0], clamp))} />
         </Sequence>
       ))}
       <Sequence from={KNOCKS[0] - 29} durationInFrames={OPENING_FRAMES - KNOCKS[0] + 29} name="🔊 thunder">
-        <Audio src={staticFile("sfx/thunder-strike.mp3")} volume={0.4} />
+        <Audio src={staticFile("sfx/thunder-strike.mp3")} volume={gain(0.4)} />
       </Sequence>
       {/* Out of the way before his laugh */}
       <Sequence from={S.reveal - 29} durationInFrames={S.laugh - S.reveal + 29 + 6} name="🔊 reveal thunder">
-        <Audio src={staticFile("sfx/thunder-strike.mp3")} volume={(t) => 0.55 * interpolate(t, [0, 40, S.laugh - S.reveal + 35], [1, 1, 0], clamp)} />
+        <Audio src={staticFile("sfx/thunder-strike.mp3")} volume={gain((t) => 0.55 * interpolate(t, [0, 40, S.laugh - S.reveal + 35], [1, 1, 0], clamp))} />
       </Sequence>
       {[S.rowan - 2, S.makeMe - 6, S.split + 2].map((at) => (
         <Sequence key={at} from={at - 10} durationInFrames={24} name="🔊 whip pan">
-          <Audio src={staticFile("sfx/jump-whoosh.mp3")} volume={0.22} />
+          <Audio src={staticFile("sfx/jump-whoosh.mp3")} volume={gain(0.22)} />
         </Sequence>
       ))}
       <Sequence from={S.split - 7} durationInFrames={45} name="🔊 split">
-        <Audio src={staticFile("sfx/summon.mp3")} volume={0.45} />
+        <Audio src={staticFile("sfx/summon.mp3")} volume={gain(0.45)} />
       </Sequence>
       <Sequence from={S.shield} durationInFrames={20} name="🔊 shield up">
-        <Audio src={staticFile("sfx/shield-hit.mp3")} volume={1.1} />
+        <Audio src={staticFile("sfx/shield-hit.mp3")} volume={gain(1.1)} />
       </Sequence>
       {FIRST_BOLTS.map((b) => (
         <Sequence key={b.t0} from={b.t0 - 2} durationInFrames={OPENING_FRAMES - b.t0 + 2} name="🔊 bolt">
-          <Audio src={staticFile("sfx/bolt-zap.mp3")} volume={0.21} />
+          <Audio src={staticFile("sfx/bolt-zap.mp3")} volume={gain(0.21)} />
         </Sequence>
       ))}
       {STANDOFF.map((l) => (
         <Sequence key={l.from} from={l.from} durationInFrames={l.dur + 15} name={`🗣 ${l.who}`}>
-          <Audio src={staticFile(l.voice)} volume={1} />
+          <Audio src={staticFile(l.voice)} volume={gain(1)} />
         </Sequence>
       ))}
       {NARRATION.map((n) => (
         <Sequence key={n.at} from={n.at} durationInFrames={n.len} name="🗣 Narrator">
-          <Audio src={staticFile(n.voice)} volume={1} />
+          <Audio src={staticFile(n.voice)} volume={gain(1)} />
         </Sequence>
       ))}
     </AbsoluteFill>

@@ -13,15 +13,30 @@ import { Village3D, VILLAGE_3D_FRAMES } from "./hero/Village3D";
 import { FirstWords, FIRST_WORDS_FRAMES } from "./hero/FirstWords";
 import { Trial, TRIAL_FRAMES } from "./hero/Trial";
 import { Strike, STRIKE_FRAMES } from "./hero/Strike";
+import { NextTime, NEXT_TIME_FRAMES } from "./hero/NextTime";
 import { Tower, TOWER_FRAMES } from "./hero/Tower";
 import { Home, HOME_FRAMES } from "./hero/Home";
 import { Lair, LAIR_FRAMES } from "./hero/Lair";
 import { Credits, CREDITS_FRAMES } from "./hero/Credits";
+import { CLIP_FRAMES, ClipVideo, Ident, IDENT_FRAMES } from "./hero/Ident";
+import { OpeningTitles, OPENING_TITLES_FRAMES } from "./hero/OpeningTitles";
+import { LogoMock } from "./hero/LogoMock";
+import { IdentPlate, PLATE_H, PLATE_W } from "./hero/IdentPlate";
 
 export const Root: React.FC = () => (
   <>
     <Composition id="DyslexorOutro" component={Outro} durationInFrames={OUTRO_DURATION} fps={FPS} width={WIDTH} height={HEIGHT} />
     <Composition id="RowanVoyage" component={LoreOutro} durationInFrames={LORE_DURATION} fps={FPS} width={WIDTH} height={HEIGHT} />
+    {/* The studio ident, before the pilot. */}
+    {/* Just the Kling clip, to render its last frame for the ident's hold. */}
+    <Composition id="IdentClip" component={ClipVideo} durationInFrames={CLIP_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
+    <Composition id="DyslexorStudios-0" component={Ident} durationInFrames={IDENT_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
+    {/* Bakes the wordmark into an ident keyframe (render as a still). */}
+    <Composition id="IdentPlate" component={IdentPlate} durationInFrames={1} fps={FPS} width={PLATE_W} height={PLATE_H} defaultProps={{ img: "ident/keyframes/kf5-library.png", x: 742, y: 279, w: 420, h: 126 }} />
+    {/* The opening titles over a real-life school morning. */}
+    <Composition id="LogoMock" component={LogoMock} durationInFrames={1} fps={FPS} width={WIDTH} height={HEIGHT} defaultProps={{ v: "current" as const }} />
+    <Composition id="OpeningTitles-0b" component={OpeningTitles} durationInFrames={OPENING_TITLES_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
+    {/* Studio-mark mock-ups (not in the episode). */}
     <Composition id="IntoTheRealm-1" component={IntoTheRealm} durationInFrames={INTO_THE_REALM_DURATION} fps={FPS} width={WIDTH} height={HEIGHT} />
     {/* Act 3 on its own, for working on it while IntoTheRealm is prologue-only. */}
     <Composition id="RealmArrival-2" component={Arrival} durationInFrames={ARRIVAL_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
@@ -33,6 +48,7 @@ export const Root: React.FC = () => (
     {/* The pilot's end credits. */}
     <Composition id="RealmCredits-6" component={Credits} durationInFrames={CREDITS_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
     {/* Built for later episodes (docs/SEASON-1.md). */}
+    <Composition id="Ep2-Preview" component={NextTime} durationInFrames={NEXT_TIME_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
     <Composition id="Ep2-Taken" component={Strike} durationInFrames={STRIKE_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
     <Composition id="Ep5-Tower" component={Tower} durationInFrames={TOWER_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
     <Composition id="Ep6-Home" component={Home} durationInFrames={HOME_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
