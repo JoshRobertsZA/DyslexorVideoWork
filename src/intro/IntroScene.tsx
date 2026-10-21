@@ -26,10 +26,17 @@ const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 // The take starts at its first word, so it sits this many frames in.
 export const AUDIO_AT = 24;
-export const VOICE_FRAMES = 1647;
+export const VOICE_FRAMES = 1686;
 export const INTRO_FRAMES = AUDIO_AT + VOICE_FRAMES;
 // Seconds into the recording -> frame of the scene.
-const T = (s: number) => AUDIO_AT + Math.round(s * 30);
+const NEW = (s: number) => AUDIO_AT + Math.round(s * 30);
+// The beats below were first timed against the earlier take of the narration.
+// This maps a time in that take onto the same word in the current take (the
+// "newest" voice, 56.2s), sentence by sentence, so T() still lands on the
+// right word. Subtitles use NEW() with times read straight off the new take.
+const OLD_TAKE = [0, 7.18, 10.84, 15.56, 19.18, 22.1, 24.11, 25.93, 27.81, 30.68, 33.86, 38.48, 40.43, 41.85, 43.58, 46.83, 48.45, 50.02, 51.1, 51.81, 54.74, 54.88];
+const NEW_TAKE = [0, 7.3, 11.03, 16.24, 20.05, 22.92, 24.26, 25.9, 27.68, 30.74, 34.06, 38.18, 39.58, 41.21, 43.33, 47.37, 49.27, 50.48, 51.8, 52.62, 55.99, 56.2];
+const T = (s: number) => NEW(interpolate(s, OLD_TAKE, NEW_TAKE, clamp));
 const END = INTRO_FRAMES;
 
 // The sky and the lamps' flicker run on a clock that carries on into the duel,
@@ -37,7 +44,8 @@ const END = INTRO_FRAMES;
 const clock = (f: number) => f - (INTRO_FRAMES - OPENING_FRAMES);
 
 // Three knocks fall in the two-second silence before "Then he came".
-const KNOCKS = [T(22.35), T(22.95), T(23.55)];
+// Spaced to fit the 1.3s pause the new take leaves before "Then he came" (24.26s).
+const KNOCKS = [NEW(23.05), NEW(23.55), NEW(24.05)];
 const EYES_OPEN = KNOCKS[1];
 const REVEAL = T(26.1);
 const LAMPS_OUT = T(30.7);
@@ -58,22 +66,23 @@ const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 // ---- Subtitles (timed to the recording's phrases) --------------------------
 
 const SUBS: { from: number; to: number; text: string }[] = [
-  { from: 0.0, to: 4.55, text: "For a thousand years, the land of words and light" },
-  { from: 5.0, to: 6.55, text: "knew only peace." },
-  { from: 7.15, to: 10.15, text: "Every sentence grew like a bright flower," },
-  { from: 10.8, to: 15.3, text: "and every dawn arrived as a poem written across the sky." },
-  { from: 15.55, to: 18.7, text: "Children of the valley learned to speak in colors," },
-  { from: 19.15, to: 22.15, text: "and no voice was ever raised in anger." },
-  { from: 24.1, to: 27.0, text: "Then he came, my old enemy," },
-  { from: 27.8, to: 29.95, text: "riding in on a cold wind." },
-  { from: 30.65, to: 32.6, text: "He did not want to share the light." },
-  { from: 33.85, to: 35.65, text: "He wanted to swallow it whole" },
-  { from: 36.3, to: 38.5, text: "and leave only silence behind." },
-  { from: 40.4, to: 41.9, text: "I will not let him have it." },
-  { from: 43.55, to: 46.15, text: "Not one word, not one ray." },
-  { from: 46.8, to: 48.5, text: "Stand back, old friend." },
-  { from: 50.0, to: 51.15, text: "This ends tonight," },
-  { from: 51.8, to: 54.8, text: "and I will end it with the first spell I ever learned." },
+  { from: 0.0, to: 1.9, text: "For a thousand years," },
+  { from: 2.3, to: 4.4, text: "the land of words and light" },
+  { from: 5.0, to: 6.6, text: "knew only peace." },
+  { from: 7.3, to: 10.25, text: "Every sentence grew like a bright flower," },
+  { from: 11.0, to: 15.95, text: "and every dawn arrived as a poem written across the sky." },
+  { from: 16.2, to: 19.55, text: "Children of the valley learned to speak in colors," },
+  { from: 20.0, to: 22.95, text: "and no voice was ever raised in anger." },
+  { from: 24.25, to: 27.0, text: "Then he came, my old enemy," },
+  { from: 27.65, to: 29.95, text: "riding in on a cold wind." },
+  { from: 30.7, to: 32.9, text: "He did not want to share the light." },
+  { from: 34.0, to: 36.1, text: "He wanted to swallow it whole" },
+  { from: 36.1, to: 38.25, text: "and leave only silence behind." },
+  { from: 39.55, to: 41.3, text: "I will not let him have it." },
+  { from: 43.3, to: 46.6, text: "Not one word, not one ray." },
+  { from: 47.35, to: 49.3, text: "Stand back, old friend." },
+  { from: 50.45, to: 51.85, text: "This ends tonight," },
+  { from: 52.6, to: 56.0, text: "and I will end it with the first spell I ever learned." },
 ];
 
 // ---- Rowan -----------------------------------------------------------------
@@ -671,8 +680,8 @@ const Wind: React.FC<{ f: number }> = ({ f }) => {
 };
 
 const Subtitle: React.FC<{ f: number; sub: { from: number; to: number; text: string } }> = ({ f, sub }) => {
-  const from = T(sub.from);
-  const dur = T(sub.to) + 6 - from;
+  const from = NEW(sub.from);
+  const dur = NEW(sub.to) + 6 - from;
   const t = f - from;
   if (t < 0 || t > dur) return null;
   const a = interpolate(t, [0, 8, dur - 10, dur], [0, 1, 1, 0], clamp);
@@ -716,7 +725,7 @@ const KEYS: [number, number, number, number][] = [
   [215, 330, 1.5, 560],
   [345, 700, 1.5, 560],
   [378, 700, 1.12, 300],
-  [488, 640, 1.1, 300],
+  [T(15.4), 640, 1.1, 300],
   [KNOCKS[0] - 14, 640, 1.55, 575],
   [KNOCKS[0] + 4, 610, 1.6, 575],
   [KNOCKS[2] + 12, 1050, 1.2, WIDE_Y],
