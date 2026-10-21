@@ -22,9 +22,14 @@ import { CLIP_FRAMES, ClipVideo, Ident, IDENT_FRAMES } from "./hero/Ident";
 import { OpeningTitles, OPENING_TITLES_FRAMES } from "./hero/OpeningTitles";
 import { LogoMock } from "./hero/LogoMock";
 import { IdentPlate, PLATE_H, PLATE_W } from "./hero/IdentPlate";
+import { IntroScene, INTRO_FRAMES } from "./intro/IntroScene";
+import { IntroToDuel, INTRO_DUEL_FRAMES } from "./intro/Intro";
 
 export const Root: React.FC = () => (
   <>
+    {/* Elder Rowan's new intro, then the existing duel (Summoning). */}
+    <Composition id="Intro-Rowan" component={IntroToDuel} durationInFrames={INTRO_DUEL_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
+    <Composition id="Intro-Rowan-A" component={IntroScene} durationInFrames={INTRO_FRAMES} fps={FPS} width={WIDTH} height={HEIGHT} />
     <Composition id="DyslexorOutro" component={Outro} durationInFrames={OUTRO_DURATION} fps={FPS} width={WIDTH} height={HEIGHT} />
     <Composition id="RowanVoyage" component={LoreOutro} durationInFrames={LORE_DURATION} fps={FPS} width={WIDTH} height={HEIGHT} />
     {/* The studio ident, before the pilot. */}
