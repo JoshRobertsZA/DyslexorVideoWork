@@ -84,7 +84,7 @@ export const IntoTheRealm: React.FC = () => {
       {WIZARD_STORY && (
         <>
           <Sequence from={S_OPEN - BRIDGE_IN} durationInFrames={BRIDGE_FRAMES} name="0 · Bridge into Rowan's story">
-            <StoryBridge />
+            <StoryBridge barsOut={NEW_INTRO ? { from: 10, to: 70 } : undefined} />
           </Sequence>
           <Sequence from={S_SUMMON} durationInFrames={SUMMONING_FRAMES} name="1 · The Wizard: the summoning">
             <Summoning />

@@ -56,7 +56,9 @@ const Gather: React.FC<{ f: number }> = ({ f }) => {
   );
 };
 
-export const StoryBridge: React.FC = () => {
+// `barsOut` (frames after the story's first frame) lets a story with its own
+// subtitles open the widescreen bars sooner.
+export const StoryBridge: React.FC<{ barsOut?: { from: number; to: number } }> = ({ barsOut }) => {
   const f = useCurrentFrame();
   // The "A": in, to the centre, swells with the bloom, then rises and fades.
   const aIn = interpolate(f, [0, 30], [0, 1], { ...clamp, easing: Easing.out(Easing.quad) });
@@ -66,7 +68,7 @@ export const StoryBridge: React.FC = () => {
   const aY = interpolate(f, [0, BLOOM, BLOOM + 110], [560, 470, 330], { ...clamp, easing: Easing.inOut(Easing.quad) });
   // The warm light the past appears through.
   const bloom = interpolate(f, [BLOOM - 35, BLOOM, BLOOM + 40], [0, 0.85, 0], { ...clamp, easing: Easing.inOut(Easing.quad) });
-  const bars = interpolate(f, [BARS_OUT.from, BARS_OUT.to], [BAR, 0], { ...clamp, easing: Easing.inOut(Easing.quad) });
+  const bars = interpolate(f, [barsOut ? STORY + barsOut.from : BARS_OUT.from, barsOut ? STORY + barsOut.to : BARS_OUT.to], [BAR, 0], { ...clamp, easing: Easing.inOut(Easing.quad) });
   const grade = interpolate(f, [STORY, STORY + 30, GRADE_OUT.from, GRADE_OUT.to], [0, 1, 1, 0], clamp);
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
